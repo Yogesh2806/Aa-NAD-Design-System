@@ -289,6 +289,7 @@
     return c;
   }
   function combine(page, comps, name, cols, description, x = 0, y = 0) {
+    for (const c of comps) page.appendChild(c);
     const set = figma.combineAsVariants(comps, page);
     set.name = name;
     set.description = description;
@@ -353,17 +354,73 @@
     };
     n.effects = [ring(2, "bg"), ring(4, "focus-ring")];
   }
-  async function docPage(name, title, desc) {
-    const page = figma.createPage();
-    page.name = name;
+  var LIMITED = false;
+  var GROUP_PAGES = {};
+  var CURSOR = /* @__PURE__ */ new Map();
+  var SECTIONS = [];
+  function probePageLimit() {
+    const made = [];
+    try {
+      for (let i = 0; i < 3; i++) made.push(figma.createPage());
+    } catch (e) {
+      LIMITED = true;
+    }
+    for (const p of made) p.remove();
+    if (LIMITED) warn("This Figma plan allows 3 pages per file, so the library is laid out on 3 pages (Cover & Foundations, Assets, Components) with one section per part.");
+  }
+  function groupPage(group) {
+    if (group === "Cover & Foundations") return figma.root.children[0];
+    if (!GROUP_PAGES[group]) {
+      const p = figma.createPage();
+      p.name = group;
+      GROUP_PAGES[group] = p;
+    }
+    return GROUP_PAGES[group];
+  }
+  async function docPage(name, title, desc, group = "Components") {
+    let host;
+    if (LIMITED) {
+      const s = figma.createSection();
+      s.name = name;
+      groupPage(group).appendChild(s);
+      host = s;
+      SECTIONS.push(s);
+    } else {
+      const page = figma.createPage();
+      page.name = name;
+      host = page;
+    }
     const head = frame("Header", { dir: "VERTICAL", gap: "space-8", fill: null });
     head.counterAxisAlignItems = "MIN";
     add(head, await text(title, "heading-1", "text", "Title"));
     add(head, await text(desc, "body-lg", "text-muted", "Description", 880));
-    page.appendChild(head);
+    host.appendChild(head);
     head.x = 0;
     head.y = -40 - head.height;
-    return page;
+    return host;
+  }
+  function finishHost(host) {
+    if (host.type !== "SECTION") return;
+    const kids = host.children;
+    if (!kids.length) return;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const k of kids) {
+      x0 = Math.min(x0, k.x);
+      y0 = Math.min(y0, k.y);
+      x1 = Math.max(x1, k.x + k.width);
+      y1 = Math.max(y1, k.y + k.height);
+    }
+    const pad = 80;
+    for (const k of kids) {
+      k.x += pad - x0;
+      k.y += pad - y0;
+    }
+    host.resizeWithoutConstraints(x1 - x0 + pad * 2, y1 - y0 + pad * 2);
+    const page = host.parent;
+    const y = CURSOR.get(page) || 0;
+    host.x = 0;
+    host.y = y;
+    CURSOR.set(page, y + host.height + 200);
   }
   async function buildIcons(page) {
     let x = 0, y = 0, i = 0;
@@ -888,29 +945,45 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
     add(f, await text("A universal, monochrome, accessibility-first design system for web and mobile. Variables with Light, Dark and High-contrast modes; components bound to tokens. MIT + CC BY 4.0.", "body-lg", "text-muted", "Tagline", 760));
     page.appendChild(f);
   }
+  var CANVAS = [{ type: "SOLID", color: { r: 0.957, g: 0.957, b: 0.957 } }];
+  function lightCanvas() {
+    for (const p of figma.root.children) p.backgrounds = CANVAS;
+  }
   async function main() {
+    if (figma.root.children.some((p) => p.name === "Foundations" || p.name === "Cover & Foundations")) {
+      lightCanvas();
+      figma.closePlugin("Aa NAD library is already in this file \u2014 refreshed page backgrounds. Run in an empty file to build a new copy.");
+      return;
+    }
     figma.notify("Aa NAD: building the library\u2026 this takes about a minute.", { timeout: 6e4 });
     await setupFonts();
     await buildVariables();
     await buildStyles();
+    probePageLimit();
     const cover = figma.root.children[0];
-    cover.name = "Cover";
+    cover.name = LIMITED ? "Cover & Foundations" : "Cover";
     await buildCover(cover);
-    const found = await docPage("Foundations", "Foundations", "Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.");
-    const iconsPage = await docPage("Icons", "Icons", "Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.");
+    if (LIMITED) CURSOR.set(cover, 1160);
+    const found = await docPage("Foundations", "Foundations", "Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.", "Cover & Foundations");
+    const iconsPage = await docPage("Icons", "Icons", "Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.", "Assets");
     await buildIcons(iconsPage);
-    const assets = await docPage("Logo & illustrations", "Logo, illustrations, avatars", "Module Aa logo, 15 line illustrations and 8 illustrated avatars as editable vectors. CC BY 4.0.");
+    finishHost(iconsPage);
+    const assets = await docPage("Logo & illustrations", "Logo, illustrations, avatars", "Module Aa logo, 15 line illustrations and 8 illustrated avatars as editable vectors. CC BY 4.0.", "Assets");
     await placeSvgs(assets, "Logo", Object.fromEntries(Object.entries(DATA.logos).filter(([k]) => !/white|reversed/.test(k))), 0, 240, 4);
     await placeSvgs(assets, "Logo on dark", Object.fromEntries(Object.entries(DATA.logos).filter(([k]) => /white|reversed/.test(k))), 560, 240, 4, "gray-950");
     await placeSvgs(assets, "Illustrations", DATA.illus, 900, 320, 4);
     await placeSvgs(assets, "Avatars", DATA.avatars, 2400, 96, 8);
+    finishHost(assets);
     try {
       await buildFoundations(found);
     } catch (e) {
       warn("Foundations page: " + e.message);
     }
-    const sep = figma.createPage();
-    sep.name = "\u2014\u2014\u2014  COMPONENTS  \u2014\u2014\u2014";
+    finishHost(found);
+    if (!LIMITED) {
+      const sep = figma.createPage();
+      sep.name = "\u2014\u2014\u2014  COMPONENTS  \u2014\u2014\u2014";
+    }
     const builders = [
       ["Button", "Primary, secondary, tertiary, ghost and danger \xD7 3 sizes \xD7 5 states.", buildButton],
       ["IconButton", "Icon-only buttons; always labelled in code.", buildIconButton],
@@ -935,11 +1008,13 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
         const page = await docPage(name, name, desc);
         const set = await fn(page, button);
         if (name === "Button") button = set;
+        finishHost(page);
         done++;
       } catch (e) {
         warn(`${name}: ${e.message}`);
       }
     }
+    lightCanvas();
     await figma.setCurrentPageAsync(cover);
     const msg = `Aa NAD library built: ${Object.keys(VARS).length + Object.keys(FLOATS).length} variables, ${Object.keys(TEXT).length} text styles, ${Object.keys(ICON).length} icons, ${done}/15 components.` + (issues.length ? ` ${issues.length} note(s) \u2014 see the console (Plugins \u2192 Development \u2192 Show/Hide console).` : "");
     figma.closePlugin(msg);

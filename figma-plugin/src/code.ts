@@ -5,6 +5,7 @@
 import { DATA } from './data';
 
 type V = Variable;
+type Host = PageNode | SectionNode;
 const issues: string[] = [];
 const log = (m: string) => { console.log('[Aa NAD] ' + m); };
 const warn = (m: string) => { issues.push(m); console.warn('[Aa NAD] ' + m); };
@@ -208,7 +209,8 @@ function variantOf(set: ComponentSetNode, props: Record<string, string>): Compon
   if (!c) throw new Error(`variant not found: ${want.join(', ')}`);
   return c;
 }
-function combine(page: PageNode, comps: ComponentNode[], name: string, cols: number, description: string, x = 0, y = 0) {
+function combine(page: Host, comps: ComponentNode[], name: string, cols: number, description: string, x = 0, y = 0) {
+  for (const c of comps) page.appendChild(c); // variants must share the set's page
   const set = figma.combineAsVariants(comps, page);
   set.name = name; set.description = description;
   const gap = 24;
@@ -247,18 +249,50 @@ function focusRing(n: ComponentNode | FrameNode) {
   };
   n.effects = [ring(2, 'bg'), ring(4, 'focus-ring')];
 }
-async function docPage(name: string, title: string, desc: string) {
-  const page = figma.createPage(); page.name = name;
+// Starter (free) plans allow 3 pages per file. In that case every part becomes a Section on one of three pages.
+let LIMITED = false;
+const GROUP_PAGES: Record<string, PageNode> = {};
+const CURSOR = new Map<PageNode, number>();
+const SECTIONS: SectionNode[] = [];
+function probePageLimit() {
+  const made: PageNode[] = [];
+  try { for (let i = 0; i < 3; i++) made.push(figma.createPage()); }
+  catch (e) { LIMITED = true; }
+  for (const p of made) p.remove();
+  if (LIMITED) warn('This Figma plan allows 3 pages per file, so the library is laid out on 3 pages (Cover & Foundations, Assets, Components) with one section per part.');
+}
+function groupPage(group: string): PageNode {
+  if (group === 'Cover & Foundations') return figma.root.children[0];
+  if (!GROUP_PAGES[group]) { const p = figma.createPage(); p.name = group; GROUP_PAGES[group] = p; }
+  return GROUP_PAGES[group];
+}
+async function docPage(name: string, title: string, desc: string, group = 'Components'): Promise<Host> {
+  let host: Host;
+  if (LIMITED) { const s = figma.createSection(); s.name = name; groupPage(group).appendChild(s); host = s; SECTIONS.push(s); }
+  else { const page = figma.createPage(); page.name = name; host = page; }
   const head = frame('Header', { dir: 'VERTICAL', gap: 'space-8', fill: null });
   head.counterAxisAlignItems = 'MIN';
   add(head, await text(title, 'heading-1', 'text', 'Title'));
   add(head, await text(desc, 'body-lg', 'text-muted', 'Description', 880));
-  page.appendChild(head); head.x = 0; head.y = -40 - head.height;
-  return page;
+  host.appendChild(head); head.x = 0; head.y = -40 - head.height;
+  return host;
+}
+// Fit a section around its content and stack it below the previous section on the same page.
+function finishHost(host: Host) {
+  if (host.type !== 'SECTION') return;
+  const kids = host.children as SceneNode[]; if (!kids.length) return;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const k of kids) { x0 = Math.min(x0, k.x); y0 = Math.min(y0, k.y); x1 = Math.max(x1, k.x + k.width); y1 = Math.max(y1, k.y + k.height); }
+  const pad = 80;
+  for (const k of kids) { k.x += pad - x0; k.y += pad - y0; }
+  host.resizeWithoutConstraints(x1 - x0 + pad * 2, y1 - y0 + pad * 2);
+  const page = host.parent as PageNode;
+  const y = CURSOR.get(page) || 0;
+  host.x = 0; host.y = y; CURSOR.set(page, y + host.height + 200);
 }
 
 // ---------- assets ----------
-async function buildIcons(page: PageNode) {
+async function buildIcons(page: Host) {
   let x = 0, y = 0, i = 0;
   for (const [name, v] of Object.entries(DATA.icons as Record<string, Record<string, string>>)) {
     for (const variant of ['outline', 'filled'] as const) {
@@ -275,7 +309,7 @@ async function buildIcons(page: PageNode) {
   }
   log(`Icons: ${Object.keys(ICON).length}`);
 }
-async function placeSvgs(page: PageNode, title: string, svgs: Record<string, string>, y: number, w: number, perRow: number, bg?: string) {
+async function placeSvgs(page: Host, title: string, svgs: Record<string, string>, y: number, w: number, perRow: number, bg?: string) {
   add(page, await text(title, 'heading-3', 'text', title)).y = y;
   let i = 0;
   for (const [name, svg] of Object.entries(svgs)) {
@@ -288,7 +322,7 @@ async function placeSvgs(page: PageNode, title: string, svgs: Record<string, str
 }
 
 // ---------- foundations ----------
-async function buildFoundations(page: PageNode) {
+async function buildFoundations(page: Host) {
   const root = frame('Foundations', { dir: 'VERTICAL', gap: 'space-48', fill: 'bg', pad: 'space-48' }); root.counterAxisAlignItems = 'MIN';
   page.appendChild(root);
   // Semantic colours, one column per mode
@@ -353,7 +387,7 @@ const BTN_HOVER: Record<string, string | null> = { Primary: 'action-hover', Seco
 const BTN_PRESS: Record<string, string | null> = { Primary: 'action-pressed', Secondary: 'surface-pressed', Tertiary: 'surface-pressed', Ghost: 'surface-pressed', Danger: 'danger-solid' };
 const SIZE: Record<string, { h: number; pad: string; font: string; icon: number; gap: string }> = { sm: { h: 32, pad: 'space-12', font: 'label-sm', icon: 16, gap: 'space-4' }, md: { h: 40, pad: 'space-16', font: 'label', icon: 16, gap: 'space-8' }, lg: { h: 48, pad: 'space-24', font: 'label-lg', icon: 20, gap: 'space-8' } };
 
-async function buildButton(page: PageNode) {
+async function buildButton(page: Host) {
   const comps: ComponentNode[] = [];
   for (const variant of Object.keys(BTN_FILL)) for (const size of ['sm', 'md', 'lg']) for (const state of ['Default', 'Hover', 'Pressed', 'Focus', 'Disabled']) {
     const [fill, fg, stroke] = BTN_FILL[variant]; const z = SIZE[size];
@@ -373,7 +407,7 @@ async function buildButton(page: PageNode) {
   linkSwap(set, 'Start icon', 'add/outline', 'Icon start'); linkSwap(set, 'End icon', 'arrow-forward/outline', 'Icon end');
   return set;
 }
-async function buildIconButton(page: PageNode) {
+async function buildIconButton(page: Host) {
   const comps: ComponentNode[] = [];
   for (const variant of ['Ghost', 'Secondary', 'Primary']) for (const size of ['sm', 'md', 'lg']) for (const state of ['Default', 'Hover', 'Focus', 'Disabled']) {
     const [fill, fg, stroke] = BTN_FILL[variant]; const z = SIZE[size];
@@ -394,7 +428,7 @@ async function field(c: ComponentNode, label: string, inner: FrameNode, helper: 
   add(foot, await text(helper, 'body-sm', helperColor, 'Helper text'));
   add(c, foot);
 }
-async function buildTextField(page: PageNode) {
+async function buildTextField(page: Host) {
   const comps: ComponentNode[] = [];
   for (const size of ['md', 'lg']) for (const state of ['Default', 'Hover', 'Focus', 'Filled', 'Error', 'Disabled']) {
     const c = comp(`Size=${size}, State=${state}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
@@ -413,7 +447,7 @@ async function buildTextField(page: PageNode) {
   linkBool(set, 'Show icon', true, 'Icon'); linkBool(set, 'Show helper', true, 'Helper'); linkSwap(set, 'Leading icon', 'search/outline', 'Icon');
   return set;
 }
-async function buildSelect(page: PageNode) {
+async function buildSelect(page: Host) {
   const comps: ComponentNode[] = [];
   for (const state of ['Default', 'Focus', 'Error', 'Disabled']) {
     const c = comp(`State=${state}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 280 }); c.counterAxisAlignItems = 'MIN';
@@ -432,7 +466,7 @@ async function control(c: ComponentNode, label: string, state: string) {
   const t = add(c, await text(label, 'body', state === 'Disabled' ? 'text-disabled' : 'text', 'Label'));
   return t;
 }
-async function buildCheckbox(page: PageNode) {
+async function buildCheckbox(page: Host) {
   const comps: ComponentNode[] = [];
   for (const checked of ['False', 'True', 'Indeterminate']) for (const state of ['Default', 'Hover', 'Focus', 'Error', 'Disabled']) {
     const c = comp(`Checked=${checked}, State=${state}`, { gap: 'space-12', fill: null });
@@ -448,7 +482,7 @@ async function buildCheckbox(page: PageNode) {
   linkText(set, 'Label', 'Checkbox label', 'Label');
   return set;
 }
-async function buildRadio(page: PageNode) {
+async function buildRadio(page: Host) {
   const comps: ComponentNode[] = [];
   for (const sel of ['False', 'True']) for (const state of ['Default', 'Focus', 'Error', 'Disabled']) {
     const c = comp(`Selected=${sel}, State=${state}`, { gap: 'space-12', fill: null });
@@ -462,7 +496,7 @@ async function buildRadio(page: PageNode) {
   linkText(set, 'Label', 'Radio label', 'Label');
   return set;
 }
-async function buildSwitch(page: PageNode) {
+async function buildSwitch(page: Host) {
   const comps: ComponentNode[] = [];
   for (const on of ['False', 'True']) for (const state of ['Default', 'Focus', 'Disabled']) {
     const c = comp(`On=${on}, State=${state}`, { gap: 'space-12', fill: null });
@@ -481,7 +515,7 @@ async function buildSwitch(page: PageNode) {
 }
 const TONES: Record<string, [string, string, string, string, string]> = { Neutral: ['surface-sunken', 'text', 'action', 'on-action', 'border-strong'], Info: ['info-bg', 'info', 'info-solid', 'on-info-solid', 'info-border'], Success: ['success-bg', 'success', 'success-solid', 'on-success-solid', 'success-border'], Warning: ['warning-bg', 'warning', 'warning-solid', 'on-warning-solid', 'warning-border'], Danger: ['danger-bg', 'danger', 'danger-solid', 'on-danger-solid', 'danger-border'] };
 const TONE_ICON: Record<string, string> = { Neutral: 'information-circle', Info: 'information-circle', Success: 'checkmark-circle', Warning: 'warning', Danger: 'alert-circle' };
-async function buildBadge(page: PageNode) {
+async function buildBadge(page: Host) {
   const comps: ComponentNode[] = [];
   for (const tone of Object.keys(TONES)) for (const style of ['Subtle', 'Solid', 'Outline']) {
     const [bg, fg, solid, on, bd] = TONES[tone];
@@ -495,7 +529,7 @@ async function buildBadge(page: PageNode) {
   linkText(set, 'Label', 'Badge', 'Label'); linkBool(set, 'Show icon', true, 'Icon'); linkSwap(set, 'Icon', 'information-circle/outline', 'Icon');
   return set;
 }
-async function buildTag(page: PageNode) {
+async function buildTag(page: Host) {
   const comps: ComponentNode[] = [];
   for (const type of ['Static', 'Removable', 'Selectable', 'Selected', 'Disabled']) {
     const sel = type === 'Selected';
@@ -510,7 +544,7 @@ async function buildTag(page: PageNode) {
   linkText(set, 'Label', 'Tag', 'Label');
   return set;
 }
-async function buildAvatar(page: PageNode) {
+async function buildAvatar(page: Host) {
   const comps: ComponentNode[] = [];
   for (const type of ['Initials', 'Illustration', 'Icon']) for (const size of [24, 32, 40, 48, 64]) {
     const c = comp(`Type=${type}, Size=${size}`, { fill: type === 'Initials' ? 'blue-100' : type === 'Icon' ? 'gray-100' : null, radius: 'radius-full', w: size, h: size, align: 'CENTER', cross: 'CENTER' });
@@ -523,7 +557,7 @@ async function buildAvatar(page: PageNode) {
   const set = combine(page, comps, 'Avatar', 5, 'A person: illustration or photo → initials → icon. Always has a name (accessible label). Colour comes from a palette hue (-100 fill, -800 text).');
   return set;
 }
-async function buildCard(page: PageNode, button: ComponentSetNode) {
+async function buildCard(page: Host, button: ComponentSetNode) {
   const comps: ComponentNode[] = [];
   for (const variant of ['Outline', 'Elevated', 'Filled']) {
     const c = comp(`Variant=${variant}`, { dir: 'VERTICAL', fill: variant === 'Filled' ? 'surface-sunken' : 'surface', stroke: variant === 'Outline' ? 'border' : undefined, radius: 'radius-md', w: 320 }); c.counterAxisAlignItems = 'MIN'; c.clipsContent = true;
@@ -541,7 +575,7 @@ async function buildCard(page: PageNode, button: ComponentSetNode) {
   linkText(set, 'Title', 'Card title', 'Title'); linkText(set, 'Body', 'Supporting text that explains what this card is about.', 'Body'); linkBool(set, 'Show footer', true, 'Footer');
   return set;
 }
-async function buildAlert(page: PageNode) {
+async function buildAlert(page: Host) {
   const comps: ComponentNode[] = [];
   for (const tone of ['Info', 'Success', 'Warning', 'Danger', 'Neutral']) {
     const [bg, fg, , , bd] = TONES[tone];
@@ -558,7 +592,7 @@ async function buildAlert(page: PageNode) {
   linkText(set, 'Title', 'Title', 'Title'); linkText(set, 'Body', 'Explain what happened and what to do next.', 'Body'); linkBool(set, 'Dismissible', true, 'Dismiss');
   return set;
 }
-async function buildToast(page: PageNode) {
+async function buildToast(page: Host) {
   const comps: ComponentNode[] = [];
   for (const tone of ['Neutral', 'Success', 'Danger']) {
     const c = comp(`Tone=${tone}`, { gap: 'space-12', pad: ['space-12', 'space-16'], fill: 'surface-inverse', radius: 'radius-md', w: 360 }); c.counterAxisAlignItems = 'MIN';
@@ -577,7 +611,7 @@ async function buildToast(page: PageNode) {
   linkBool(set, 'Show description', true, 'Description'); linkBool(set, 'Show action', true, 'Action');
   return set;
 }
-async function buildTabs(page: PageNode) {
+async function buildTabs(page: Host) {
   const comps: ComponentNode[] = [];
   for (const state of ['Selected', 'Default', 'Hover', 'Disabled']) {
     const c = comp(`State=${state}`, { dir: 'VERTICAL', fill: state === 'Hover' ? 'surface-hover' : null, h: 48, align: 'SPACE_BETWEEN' }); c.counterAxisAlignItems = 'CENTER';
@@ -598,7 +632,7 @@ async function buildTabs(page: PageNode) {
   page.appendChild(bar); bar.x = 0; bar.y = set.y + set.height + 64;
   return set;
 }
-async function buildModal(page: PageNode, button: ComponentSetNode) {
+async function buildModal(page: Host, button: ComponentSetNode) {
   const comps: ComponentNode[] = [];
   for (const size of ['sm', 'md']) for (const kind of ['Dialog', 'Destructive']) {
     const c = comp(`Size=${size}, Kind=${kind}`, { dir: 'VERTICAL', fill: 'surface-raised', radius: 'radius-md', w: size === 'sm' ? 400 : 560 }); c.counterAxisAlignItems = 'MIN';
@@ -621,7 +655,7 @@ async function buildModal(page: PageNode, button: ComponentSetNode) {
 }
 
 // ---------- cover ----------
-async function buildCover(page: PageNode) {
+async function buildCover(page: Host) {
   const f = frame('Cover', { dir: 'VERTICAL', gap: 'space-24', pad: 'space-64', fill: 'bg', w: 1440, h: 960, align: 'MAX' }); f.counterAxisAlignItems = 'MIN';
   const logo = figma.createNodeFromSvg(DATA.logos['module-aa-nad-symbol']); logo.resize(160, 160); logo.name = 'Logo'; add(f, logo);
   add(f, await text('Aa NAD Design System', 'display-xl', 'text', 'Title'));
@@ -630,24 +664,35 @@ async function buildCover(page: PageNode) {
 }
 
 // ---------- main ----------
+const CANVAS: Paint[] = [{ type: 'SOLID', color: { r: 0.957, g: 0.957, b: 0.957 } }];
+function lightCanvas() { for (const p of figma.root.children) p.backgrounds = CANVAS; }
 async function main() {
+  // Re-running on a file that already holds the library only refreshes page backgrounds; it never builds a duplicate.
+  if (figma.root.children.some(p => p.name === 'Foundations' || p.name === 'Cover & Foundations')) {
+    lightCanvas();
+    figma.closePlugin('Aa NAD library is already in this file — refreshed page backgrounds. Run in an empty file to build a new copy.');
+    return;
+  }
   figma.notify('Aa NAD: building the library… this takes about a minute.', { timeout: 60000 });
   await setupFonts();
   await buildVariables();
   await buildStyles();
-  const cover = figma.root.children[0]; cover.name = 'Cover';
+  probePageLimit();
+  const cover = figma.root.children[0]; cover.name = LIMITED ? 'Cover & Foundations' : 'Cover';
   await buildCover(cover);
-  const found = await docPage('Foundations', 'Foundations', 'Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.');
-  const iconsPage = await docPage('Icons', 'Icons', 'Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.');
-  await buildIcons(iconsPage);
-  const assets = await docPage('Logo & illustrations', 'Logo, illustrations, avatars', 'Module Aa logo, 15 line illustrations and 8 illustrated avatars as editable vectors. CC BY 4.0.');
+  if (LIMITED) CURSOR.set(cover, 1160);
+  const found = await docPage('Foundations', 'Foundations', 'Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.', 'Cover & Foundations');
+  const iconsPage = await docPage('Icons', 'Icons', 'Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.', 'Assets');
+  await buildIcons(iconsPage); finishHost(iconsPage);
+  const assets = await docPage('Logo & illustrations', 'Logo, illustrations, avatars', 'Module Aa logo, 15 line illustrations and 8 illustrated avatars as editable vectors. CC BY 4.0.', 'Assets');
   await placeSvgs(assets, 'Logo', Object.fromEntries(Object.entries(DATA.logos as Record<string, string>).filter(([k]) => !/white|reversed/.test(k))), 0, 240, 4);
   await placeSvgs(assets, 'Logo on dark', Object.fromEntries(Object.entries(DATA.logos as Record<string, string>).filter(([k]) => /white|reversed/.test(k))), 560, 240, 4, 'gray-950');
   await placeSvgs(assets, 'Illustrations', DATA.illus, 900, 320, 4);
-  await placeSvgs(assets, 'Avatars', DATA.avatars, 2400, 96, 8);
+  await placeSvgs(assets, 'Avatars', DATA.avatars, 2400, 96, 8); finishHost(assets);
   try { await buildFoundations(found); } catch (e: any) { warn('Foundations page: ' + e.message); }
-  const sep = figma.createPage(); sep.name = '———  COMPONENTS  ———';
-  const builders: [string, string, (p: PageNode, b?: any) => Promise<ComponentSetNode>][] = [
+  finishHost(found);
+  if (!LIMITED) { const sep = figma.createPage(); sep.name = '———  COMPONENTS  ———'; }
+  const builders: [string, string, (p: Host, b?: any) => Promise<ComponentSetNode>][] = [
     ['Button', 'Primary, secondary, tertiary, ghost and danger × 3 sizes × 5 states.', buildButton],
     ['IconButton', 'Icon-only buttons; always labelled in code.', buildIconButton],
     ['TextField', 'Text input with label, helper, error and icon.', buildTextField],
@@ -670,9 +715,11 @@ async function main() {
       const page = await docPage(name, name, desc);
       const set = await fn(page, button);
       if (name === 'Button') button = set;
+      finishHost(page);
       done++;
     } catch (e: any) { warn(`${name}: ${e.message}`); }
   }
+  lightCanvas();
   await figma.setCurrentPageAsync(cover);
   const msg = `Aa NAD library built: ${Object.keys(VARS).length + Object.keys(FLOATS).length} variables, ${Object.keys(TEXT).length} text styles, ${Object.keys(ICON).length} icons, ${done}/15 components.` + (issues.length ? ` ${issues.length} note(s) — see the console (Plugins → Development → Show/Hide console).` : '');
   figma.closePlugin(msg);
