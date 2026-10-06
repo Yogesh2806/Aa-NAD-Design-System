@@ -1,0 +1,18 @@
+{
+  "name": "aa-nad-design-system",
+  "version": "1.2.0",
+  "description": "Aa NAD — a universal, monochrome, accessibility-first design system for web and mobile, readable by designers and AI coding agents.",
+  "license": "MIT",
+  "author": "Yogesh Jeevan",
+  "main": "dist/aa-nad.js",
+  "style": "dist/aa-nad.css",
+  "types": "dist/aa-nad.d.ts",
+  "files": ["dist", "tokens", "assets", "src"],
+  "keywords": ["design-system", "design-tokens", "react", "accessibility", "wcag", "monochrome", "figma"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "docs": "node scripts/build.mjs --docs"
+  },
+  "peerDependencies": { "react": ">=18", "react-dom": ">=18" },
+  "devDependencies": { "esbuild": "^0.24.0" }
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><link rel="stylesheet" href="../lib/tokens.css"><link rel="stylesheet" href="../lib/aa-nad.css"><script src="../lib/react.production.min.js"></script><script src="../lib/react-dom.production.min.js"></script><script src="../lib/aa-nad.js"></script><script>(function(){var t=new URLSearchParams(location.search).get("theme");if(t)document.documentElement.setAttribute("data-theme",t);addEventListener("message",function(e){if(e.data&&e.data.theme)document.documentElement.setAttribute("data-theme",e.data.theme)})})()</script><meta charset="utf-8"><title>TextField — preview</title><style>body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.stack{display:flex;flex-direction:column;gap:16px}.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 24px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var N=window.AaNAD,h=React.createElement;var ILLU="../assets/Illustrations/error-404.svg";var LOGO="../assets/Logos/module-aa-nad-horizontal.svg";var AV=["../assets/Avatars/avatar-01.svg", "../assets/Avatars/avatar-02.svg", "../assets/Avatars/avatar-03.svg", "../assets/Avatars/avatar-04.svg", "../assets/Avatars/avatar-05.svg", "../assets/Avatars/avatar-06.svg", "../assets/Avatars/avatar-07.svg", "../assets/Avatars/avatar-08.svg"];
+ReactDOM.createRoot(document.getElementById('root')).render(
+h('div',{className:'grid2'},h(N.TextField,{label:'Full name',placeholder:'Jane Doe',helperText:'As it appears on your ID.'}),
+ h(N.TextField,{label:'Email',type:'email',defaultValue:'jane@',error:'Enter a valid email, like name@example.com',required:true}),
+ h(N.TextField,{label:'Search',iconStart:'search',placeholder:'Search components',type:'search'}),
+ h(N.TextField,{label:'Price',prefix:'₹',suffix:'INR',defaultValue:'1,200'}),
+ h(N.TextField,{label:'Workspace',defaultValue:'aa-nad',disabled:true}),
+ h(N.TextField,{label:'Password',type:'password',iconEnd:'eye-off',defaultValue:'secret123',size:'lg'}))
+);
+</script>
+</body>
+</html>

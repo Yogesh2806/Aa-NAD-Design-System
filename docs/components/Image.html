@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><link rel="stylesheet" href="../lib/tokens.css"><link rel="stylesheet" href="../lib/aa-nad.css"><script src="../lib/react.production.min.js"></script><script src="../lib/react-dom.production.min.js"></script><script src="../lib/aa-nad.js"></script><script>(function(){var t=new URLSearchParams(location.search).get("theme");if(t)document.documentElement.setAttribute("data-theme",t);addEventListener("message",function(e){if(e.data&&e.data.theme)document.documentElement.setAttribute("data-theme",e.data.theme)})})()</script><meta charset="utf-8"><title>Image — preview</title><style>body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.stack{display:flex;flex-direction:column;gap:16px}.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 24px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var N=window.AaNAD,h=React.createElement;var ILLU="../assets/Illustrations/error-404.svg";var LOGO="../assets/Logos/module-aa-nad-horizontal.svg";var AV=["../assets/Avatars/avatar-01.svg", "../assets/Avatars/avatar-02.svg", "../assets/Avatars/avatar-03.svg", "../assets/Avatars/avatar-04.svg", "../assets/Avatars/avatar-05.svg", "../assets/Avatars/avatar-06.svg", "../assets/Avatars/avatar-07.svg", "../assets/Avatars/avatar-08.svg"];
+ReactDOM.createRoot(document.getElementById('root')).render(
+h('div',{className:'grid3'},h(N.Image,{src:'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90"><rect width="160" height="90" fill="#efefef"/><circle cx="120" cy="28" r="12" fill="#c9c9c9"/><path d="M0 90 50 40l30 30 20-20 60 40z" fill="#a3a3a3"/></svg>'),alt:'Mountain landscape placeholder',ratio:'16:9'}),
+ h(N.Image,{src:'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e2e2e2"/><rect x="25" y="25" width="50" height="50" rx="4" fill="#737373"/></svg>'),alt:'Square placeholder',ratio:'1:1',radius:'lg'}),
+ h(N.Image,{src:'broken.jpg',alt:'Image that failed to load',ratio:'4:3'}))
+);
+</script>
+</body>
+</html>

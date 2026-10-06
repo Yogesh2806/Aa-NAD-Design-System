@@ -1,0 +1,1 @@
+Eight illustrated people in the same line style: ink `#111111` outlines, white faces, black or grey hair, on a tinted `-100` hue circle (128×128). Use them as `Avatar src` for sample data, empty profiles and onboarding; real products should let people upload a photo. Always pass `name`, which becomes the accessible label.

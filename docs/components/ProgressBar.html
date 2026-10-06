@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><link rel="stylesheet" href="../lib/tokens.css"><link rel="stylesheet" href="../lib/aa-nad.css"><script src="../lib/react.production.min.js"></script><script src="../lib/react-dom.production.min.js"></script><script src="../lib/aa-nad.js"></script><script>(function(){var t=new URLSearchParams(location.search).get("theme");if(t)document.documentElement.setAttribute("data-theme",t);addEventListener("message",function(e){if(e.data&&e.data.theme)document.documentElement.setAttribute("data-theme",e.data.theme)})})()</script><meta charset="utf-8"><title>ProgressBar — preview</title><style>body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.stack{display:flex;flex-direction:column;gap:16px}.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 24px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var N=window.AaNAD,h=React.createElement;var ILLU="../assets/Illustrations/error-404.svg";var LOGO="../assets/Logos/module-aa-nad-horizontal.svg";var AV=["../assets/Avatars/avatar-01.svg", "../assets/Avatars/avatar-02.svg", "../assets/Avatars/avatar-03.svg", "../assets/Avatars/avatar-04.svg", "../assets/Avatars/avatar-05.svg", "../assets/Avatars/avatar-06.svg", "../assets/Avatars/avatar-07.svg", "../assets/Avatars/avatar-08.svg"];
+ReactDOM.createRoot(document.getElementById('root')).render(
+h('div',{className:'stack',style:{maxWidth:480}},h(N.ProgressBar,{label:'Uploading assets',value:42}),h(N.ProgressBar,{label:'Preparing export'}),h(N.ProgressBar,{label:'Storage',value:92,tone:'danger',size:'sm'}),h(N.ProgressBar,{label:'Setup complete',value:100,tone:'success',size:'lg'}))
+);
+</script>
+</body>
+</html>

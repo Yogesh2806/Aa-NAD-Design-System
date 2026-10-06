@@ -1,0 +1,2018 @@
+{
+ "global": {
+  "color": {
+   "gray-0": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Pure white. Page and surface in light theme."
+   },
+   "gray-50": {
+    "$type": "color",
+    "$value": "#f7f7f7",
+    "$description": "Subtle background, zebra rows (light)."
+   },
+   "gray-100": {
+    "$type": "color",
+    "$value": "#efefef",
+    "$description": "Sunken areas, hover fills on white."
+   },
+   "gray-200": {
+    "$type": "color",
+    "$value": "#e2e2e2",
+    "$description": "Hairline borders and dividers (decorative, light)."
+   },
+   "gray-300": {
+    "$type": "color",
+    "$value": "#c9c9c9",
+    "$description": "Disabled borders; skeleton shapes."
+   },
+   "gray-400": {
+    "$type": "color",
+    "$value": "#a3a3a3",
+    "$description": "Disabled text/icons (light). Never for readable text."
+   },
+   "gray-500": {
+    "$type": "color",
+    "$value": "#737373",
+    "$description": "Control borders and placeholder (4.7:1 on white)."
+   },
+   "gray-600": {
+    "$type": "color",
+    "$value": "#5c5c5c",
+    "$description": "Secondary text on white (6.7:1)."
+   },
+   "gray-700": {
+    "$type": "color",
+    "$value": "#444444",
+    "$description": "Strong secondary text; dark-theme borders."
+   },
+   "gray-800": {
+    "$type": "color",
+    "$value": "#2b2b2b",
+    "$description": "Dark-theme raised surface hover."
+   },
+   "gray-900": {
+    "$type": "color",
+    "$value": "#1c1c1c",
+    "$description": "Dark-theme raised surfaces."
+   },
+   "gray-950": {
+    "$type": "color",
+    "$value": "#111111",
+    "$description": "NAD Ink — primary text, default action fill, the logo colour."
+   },
+   "gray-1000": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Pure black. Overlays only."
+   },
+   "red-50": {
+    "$type": "color",
+    "$value": "#fff4f3",
+    "$description": "Danger / destructive. Tinted background (tags, avatars, alerts)."
+   },
+   "red-100": {
+    "$type": "color",
+    "$value": "#ffe6e4",
+    "$description": "Danger / destructive. Tag / avatar fill; text on it uses -800."
+   },
+   "red-200": {
+    "$type": "color",
+    "$value": "#ffcdc8",
+    "$description": "Danger / destructive. Hover on tinted fills; chart fills."
+   },
+   "red-300": {
+    "$type": "color",
+    "$value": "#ffaba3",
+    "$description": "Danger / destructive. Borders on tinted fills."
+   },
+   "red-400": {
+    "$type": "color",
+    "$value": "#fc7a73",
+    "$description": "Danger / destructive. Icons & text on dark surfaces."
+   },
+   "red-500": {
+    "$type": "color",
+    "$value": "#e15955",
+    "$description": "Danger / destructive. Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "red-600": {
+    "$type": "color",
+    "$value": "#bd3d3b",
+    "$description": "Danger / destructive. Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "red-700": {
+    "$type": "color",
+    "$value": "#9c2f2e",
+    "$description": "Danger / destructive. Text on -50/-100 fills; hover for -600 fills."
+   },
+   "red-800": {
+    "$type": "color",
+    "$value": "#782222",
+    "$description": "Danger / destructive. Text on -100 fills; pressed state."
+   },
+   "red-900": {
+    "$type": "color",
+    "$value": "#551918",
+    "$description": "Danger / destructive. Deepest shade; dark-theme tinted backgrounds."
+   },
+   "orange-50": {
+    "$type": "color",
+    "$value": "#fff4ef",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "orange-100": {
+    "$type": "color",
+    "$value": "#ffe7dc",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "orange-200": {
+    "$type": "color",
+    "$value": "#ffcfb7",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "orange-300": {
+    "$type": "color",
+    "$value": "#ffae84",
+    "$description": "Borders on tinted fills."
+   },
+   "orange-400": {
+    "$type": "color",
+    "$value": "#f68443",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "orange-500": {
+    "$type": "color",
+    "$value": "#db640e",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "orange-600": {
+    "$type": "color",
+    "$value": "#b24e00",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "orange-700": {
+    "$type": "color",
+    "$value": "#923f00",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "orange-800": {
+    "$type": "color",
+    "$value": "#712f00",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "orange-900": {
+    "$type": "color",
+    "$value": "#511f00",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "amber-50": {
+    "$type": "color",
+    "$value": "#fff5e9",
+    "$description": "Warning. Tinted background (tags, avatars, alerts)."
+   },
+   "amber-100": {
+    "$type": "color",
+    "$value": "#ffe9cf",
+    "$description": "Warning. Tag / avatar fill; text on it uses -800."
+   },
+   "amber-200": {
+    "$type": "color",
+    "$value": "#ffd29b",
+    "$description": "Warning. Hover on tinted fills; chart fills."
+   },
+   "amber-300": {
+    "$type": "color",
+    "$value": "#f8b65d",
+    "$description": "Warning. Borders on tinted fills."
+   },
+   "amber-400": {
+    "$type": "color",
+    "$value": "#e39500",
+    "$description": "Warning. Icons & text on dark surfaces."
+   },
+   "amber-500": {
+    "$type": "color",
+    "$value": "#be7c00",
+    "$description": "Warning. Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "amber-600": {
+    "$type": "color",
+    "$value": "#996300",
+    "$description": "Warning. Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "amber-700": {
+    "$type": "color",
+    "$value": "#7d5000",
+    "$description": "Warning. Text on -50/-100 fills; hover for -600 fills."
+   },
+   "amber-800": {
+    "$type": "color",
+    "$value": "#603c00",
+    "$description": "Warning. Text on -100 fills; pressed state."
+   },
+   "amber-900": {
+    "$type": "color",
+    "$value": "#452a00",
+    "$description": "Warning. Deepest shade; dark-theme tinted backgrounds."
+   },
+   "yellow-50": {
+    "$type": "color",
+    "$value": "#fbf7e8",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "yellow-100": {
+    "$type": "color",
+    "$value": "#f7edcb",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "yellow-200": {
+    "$type": "color",
+    "$value": "#f0da95",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "yellow-300": {
+    "$type": "color",
+    "$value": "#e2c157",
+    "$description": "Borders on tinted fills."
+   },
+   "yellow-400": {
+    "$type": "color",
+    "$value": "#c9a300",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "yellow-500": {
+    "$type": "color",
+    "$value": "#a98800",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "yellow-600": {
+    "$type": "color",
+    "$value": "#876d00",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "yellow-700": {
+    "$type": "color",
+    "$value": "#6e5800",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "yellow-800": {
+    "$type": "color",
+    "$value": "#544300",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "yellow-900": {
+    "$type": "color",
+    "$value": "#3c2f00",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "lime-50": {
+    "$type": "color",
+    "$value": "#f3faeb",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "lime-100": {
+    "$type": "color",
+    "$value": "#e4f3d3",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "lime-200": {
+    "$type": "color",
+    "$value": "#cae7a7",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "lime-300": {
+    "$type": "color",
+    "$value": "#acd476",
+    "$description": "Borders on tinted fills."
+   },
+   "lime-400": {
+    "$type": "color",
+    "$value": "#8aba3e",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "lime-500": {
+    "$type": "color",
+    "$value": "#6e9e00",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "lime-600": {
+    "$type": "color",
+    "$value": "#577f00",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "lime-700": {
+    "$type": "color",
+    "$value": "#466700",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "lime-800": {
+    "$type": "color",
+    "$value": "#354f00",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "lime-900": {
+    "$type": "color",
+    "$value": "#243700",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "green-50": {
+    "$type": "color",
+    "$value": "#eefbf0",
+    "$description": "Success. Tinted background (tags, avatars, alerts)."
+   },
+   "green-100": {
+    "$type": "color",
+    "$value": "#d9f6dd",
+    "$description": "Success. Tag / avatar fill; text on it uses -800."
+   },
+   "green-200": {
+    "$type": "color",
+    "$value": "#b0ecbc",
+    "$description": "Success. Hover on tinted fills; chart fills."
+   },
+   "green-300": {
+    "$type": "color",
+    "$value": "#83dc97",
+    "$description": "Success. Borders on tinted fills."
+   },
+   "green-400": {
+    "$type": "color",
+    "$value": "#4ec36f",
+    "$description": "Success. Icons & text on dark surfaces."
+   },
+   "green-500": {
+    "$type": "color",
+    "$value": "#17a750",
+    "$description": "Success. Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "green-600": {
+    "$type": "color",
+    "$value": "#00873c",
+    "$description": "Success. Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "green-700": {
+    "$type": "color",
+    "$value": "#006e30",
+    "$description": "Success. Text on -50/-100 fills; hover for -600 fills."
+   },
+   "green-800": {
+    "$type": "color",
+    "$value": "#005423",
+    "$description": "Success. Text on -100 fills; pressed state."
+   },
+   "green-900": {
+    "$type": "color",
+    "$value": "#003c17",
+    "$description": "Success. Deepest shade; dark-theme tinted backgrounds."
+   },
+   "teal-50": {
+    "$type": "color",
+    "$value": "#e9fcf8",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "teal-100": {
+    "$type": "color",
+    "$value": "#cdf7ef",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "teal-200": {
+    "$type": "color",
+    "$value": "#94efdf",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "teal-300": {
+    "$type": "color",
+    "$value": "#45dfca",
+    "$description": "Borders on tinted fills."
+   },
+   "teal-400": {
+    "$type": "color",
+    "$value": "#00c2ae",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "teal-500": {
+    "$type": "color",
+    "$value": "#00a291",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "teal-600": {
+    "$type": "color",
+    "$value": "#008274",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "teal-700": {
+    "$type": "color",
+    "$value": "#006a5e",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "teal-800": {
+    "$type": "color",
+    "$value": "#005148",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "teal-900": {
+    "$type": "color",
+    "$value": "#003932",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "cyan-50": {
+    "$type": "color",
+    "$value": "#e8fbff",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "cyan-100": {
+    "$type": "color",
+    "$value": "#cbf6ff",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "cyan-200": {
+    "$type": "color",
+    "$value": "#91ebfd",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "cyan-300": {
+    "$type": "color",
+    "$value": "#3ddaf5",
+    "$description": "Borders on tinted fills."
+   },
+   "cyan-400": {
+    "$type": "color",
+    "$value": "#00bcd6",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "cyan-500": {
+    "$type": "color",
+    "$value": "#009db3",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "cyan-600": {
+    "$type": "color",
+    "$value": "#007e90",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "cyan-700": {
+    "$type": "color",
+    "$value": "#006775",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "cyan-800": {
+    "$type": "color",
+    "$value": "#004e5a",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "cyan-900": {
+    "$type": "color",
+    "$value": "#003740",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "blue-50": {
+    "$type": "color",
+    "$value": "#f2f7ff",
+    "$description": "Info and links in charts. Tinted background (tags, avatars, alerts)."
+   },
+   "blue-100": {
+    "$type": "color",
+    "$value": "#e2eeff",
+    "$description": "Info and links in charts. Tag / avatar fill; text on it uses -800."
+   },
+   "blue-200": {
+    "$type": "color",
+    "$value": "#c5ddff",
+    "$description": "Info and links in charts. Hover on tinted fills; chart fills."
+   },
+   "blue-300": {
+    "$type": "color",
+    "$value": "#a0c6ff",
+    "$description": "Info and links in charts. Borders on tinted fills."
+   },
+   "blue-400": {
+    "$type": "color",
+    "$value": "#6ea8ff",
+    "$description": "Info and links in charts. Icons & text on dark surfaces."
+   },
+   "blue-500": {
+    "$type": "color",
+    "$value": "#438af1",
+    "$description": "Info and links in charts. Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "blue-600": {
+    "$type": "color",
+    "$value": "#286dce",
+    "$description": "Info and links in charts. Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "blue-700": {
+    "$type": "color",
+    "$value": "#1d58aa",
+    "$description": "Info and links in charts. Text on -50/-100 fills; hover for -600 fills."
+   },
+   "blue-800": {
+    "$type": "color",
+    "$value": "#154384",
+    "$description": "Info and links in charts. Text on -100 fills; pressed state."
+   },
+   "blue-900": {
+    "$type": "color",
+    "$value": "#0f2f5d",
+    "$description": "Info and links in charts. Deepest shade; dark-theme tinted backgrounds."
+   },
+   "indigo-50": {
+    "$type": "color",
+    "$value": "#f4f6ff",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "indigo-100": {
+    "$type": "color",
+    "$value": "#e8ecff",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "indigo-200": {
+    "$type": "color",
+    "$value": "#d0d9ff",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "indigo-300": {
+    "$type": "color",
+    "$value": "#b4c0ff",
+    "$description": "Borders on tinted fills."
+   },
+   "indigo-400": {
+    "$type": "color",
+    "$value": "#909eff",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "indigo-500": {
+    "$type": "color",
+    "$value": "#727ef1",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "indigo-600": {
+    "$type": "color",
+    "$value": "#5962ce",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "indigo-700": {
+    "$type": "color",
+    "$value": "#474eaa",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "indigo-800": {
+    "$type": "color",
+    "$value": "#363b84",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "indigo-900": {
+    "$type": "color",
+    "$value": "#252a5d",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "violet-50": {
+    "$type": "color",
+    "$value": "#f8f5ff",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "violet-100": {
+    "$type": "color",
+    "$value": "#f0e9ff",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "violet-200": {
+    "$type": "color",
+    "$value": "#e1d2ff",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "violet-300": {
+    "$type": "color",
+    "$value": "#ceb5ff",
+    "$description": "Borders on tinted fills."
+   },
+   "violet-400": {
+    "$type": "color",
+    "$value": "#b88efc",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "violet-500": {
+    "$type": "color",
+    "$value": "#9d6fe3",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "violet-600": {
+    "$type": "color",
+    "$value": "#8053c0",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "violet-700": {
+    "$type": "color",
+    "$value": "#69429f",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "violet-800": {
+    "$type": "color",
+    "$value": "#50327b",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "violet-900": {
+    "$type": "color",
+    "$value": "#382356",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "pink-50": {
+    "$type": "color",
+    "$value": "#fff3f8",
+    "$description": "Tinted background (tags, avatars, alerts)."
+   },
+   "pink-100": {
+    "$type": "color",
+    "$value": "#ffe4f0",
+    "$description": "Tag / avatar fill; text on it uses -800."
+   },
+   "pink-200": {
+    "$type": "color",
+    "$value": "#ffc9e1",
+    "$description": "Hover on tinted fills; chart fills."
+   },
+   "pink-300": {
+    "$type": "color",
+    "$value": "#ffa3cf",
+    "$description": "Borders on tinted fills."
+   },
+   "pink-400": {
+    "$type": "color",
+    "$value": "#f079b6",
+    "$description": "Icons & text on dark surfaces."
+   },
+   "pink-500": {
+    "$type": "color",
+    "$value": "#d4599b",
+    "$description": "Charts and decorative marks only (≈3.5:1 on white — not for text)."
+   },
+   "pink-600": {
+    "$type": "color",
+    "$value": "#b23d7d",
+    "$description": "Text, icons and solid fills on white (≥4.5:1). White text on it passes."
+   },
+   "pink-700": {
+    "$type": "color",
+    "$value": "#922f66",
+    "$description": "Text on -50/-100 fills; hover for -600 fills."
+   },
+   "pink-800": {
+    "$type": "color",
+    "$value": "#71234e",
+    "$description": "Text on -100 fills; pressed state."
+   },
+   "pink-900": {
+    "$type": "color",
+    "$value": "#501937",
+    "$description": "Deepest shade; dark-theme tinted backgrounds."
+   },
+   "primary-50": {
+    "$type": "color",
+    "$value": "{color.gray-50}",
+    "$description": "Brand slot. Defaults to gray-50. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-100": {
+    "$type": "color",
+    "$value": "{color.gray-100}",
+    "$description": "Brand slot. Defaults to gray-100. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-200": {
+    "$type": "color",
+    "$value": "{color.gray-200}",
+    "$description": "Brand slot. Defaults to gray-200. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-300": {
+    "$type": "color",
+    "$value": "{color.gray-300}",
+    "$description": "Brand slot. Defaults to gray-300. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-400": {
+    "$type": "color",
+    "$value": "{color.gray-400}",
+    "$description": "Brand slot. Defaults to gray-400. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-500": {
+    "$type": "color",
+    "$value": "{color.gray-500}",
+    "$description": "Brand slot. Defaults to gray-500. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-600": {
+    "$type": "color",
+    "$value": "{color.gray-600}",
+    "$description": "Brand slot. Defaults to gray-600. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-700": {
+    "$type": "color",
+    "$value": "{color.gray-700}",
+    "$description": "Brand slot. Defaults to gray-700. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-800": {
+    "$type": "color",
+    "$value": "{color.gray-800}",
+    "$description": "Brand slot. Defaults to gray-800. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-900": {
+    "$type": "color",
+    "$value": "{color.gray-900}",
+    "$description": "Brand slot. Defaults to gray-900. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   },
+   "primary-950": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Brand slot. Defaults to gray-950. Replace primary-50…950 with your own ramp; components only read the action-* tokens below, which alias this ramp."
+   }
+  },
+  "space": {
+   "space-0": {
+    "$type": "dimension",
+    "$value": "0px",
+    "$description": "No space."
+   },
+   "space-2": {
+    "$type": "dimension",
+    "$value": "2px",
+    "$description": "Hairline nudges only: focus-ring offset, badge dot gaps. The one sub-4 step."
+   },
+   "space-4": {
+    "$type": "dimension",
+    "$value": "4px",
+    "$description": "Half-step: icon-to-label gap in small controls, tight stacks."
+   },
+   "space-8": {
+    "$type": "dimension",
+    "$value": "8px",
+    "$description": "Base unit. Gap between related items; icon-to-label in buttons."
+   },
+   "space-12": {
+    "$type": "dimension",
+    "$value": "12px",
+    "$description": "Input horizontal padding; compact list rows."
+   },
+   "space-16": {
+    "$type": "dimension",
+    "$value": "16px",
+    "$description": "Default padding in cards and modals (mobile); gap between form fields."
+   },
+   "space-24": {
+    "$type": "dimension",
+    "$value": "24px",
+    "$description": "Card padding (desktop); gap between groups."
+   },
+   "space-32": {
+    "$type": "dimension",
+    "$value": "32px",
+    "$description": "Section padding inside pages; modal padding on desktop."
+   },
+   "space-40": {
+    "$type": "dimension",
+    "$value": "40px",
+    "$description": "Gap between page sections (mobile)."
+   },
+   "space-48": {
+    "$type": "dimension",
+    "$value": "48px",
+    "$description": "Gap between page sections (desktop)."
+   },
+   "space-64": {
+    "$type": "dimension",
+    "$value": "64px",
+    "$description": "Hero padding; large layout gutters."
+   },
+   "space-80": {
+    "$type": "dimension",
+    "$value": "80px",
+    "$description": "Marketing section rhythm."
+   },
+   "space-96": {
+    "$type": "dimension",
+    "$value": "96px",
+    "$description": "Top-level page spacing on wide screens."
+   },
+   "space-128": {
+    "$type": "dimension",
+    "$value": "128px",
+    "$description": "Maximum layout spacing."
+   }
+  },
+  "radius": {
+   "radius-none": {
+    "$type": "dimension",
+    "$value": "0px",
+    "$description": "Tables, full-bleed media, dividers."
+   },
+   "radius-sm": {
+    "$type": "dimension",
+    "$value": "4px",
+    "$description": "DEFAULT for components: buttons, inputs, checkboxes, tags, tooltips, menus."
+   },
+   "radius-md": {
+    "$type": "dimension",
+    "$value": "8px",
+    "$description": "Cards, modals, popovers, toasts, alerts."
+   },
+   "radius-lg": {
+    "$type": "dimension",
+    "$value": "16px",
+    "$description": "Bottom sheets, large panels, app-icon-like tiles."
+   },
+   "radius-full": {
+    "$type": "dimension",
+    "$value": "9999px",
+    "$description": "Pills, avatars, switches, radio dots."
+   }
+  },
+  "size": {
+   "size-icon-sm": {
+    "$type": "dimension",
+    "$value": "16px",
+    "$description": "Icons in small controls and inline text."
+   },
+   "size-icon-md": {
+    "$type": "dimension",
+    "$value": "20px",
+    "$description": "Default icon size in controls."
+   },
+   "size-icon-lg": {
+    "$type": "dimension",
+    "$value": "24px",
+    "$description": "Standalone and navigation icons (mobile)."
+   },
+   "size-control-sm": {
+    "$type": "dimension",
+    "$value": "32px",
+    "$description": "Small controls (dense desktop only)."
+   },
+   "size-control-md": {
+    "$type": "dimension",
+    "$value": "40px",
+    "$description": "Default control height on web."
+   },
+   "size-control-lg": {
+    "$type": "dimension",
+    "$value": "48px",
+    "$description": "Large controls; default on mobile."
+   },
+   "size-touch-ios": {
+    "$type": "dimension",
+    "$value": "44px",
+    "$description": "Minimum touch target on iOS (Apple HIG)."
+   },
+   "size-touch-android": {
+    "$type": "dimension",
+    "$value": "48px",
+    "$description": "Minimum touch target on Android (Material)."
+   },
+   "size-container-sm": {
+    "$type": "dimension",
+    "$value": "640px",
+    "$description": "Narrow content column (forms, articles)."
+   },
+   "size-container-lg": {
+    "$type": "dimension",
+    "$value": "1200px",
+    "$description": "Max content width on desktop."
+   }
+  },
+  "borderWidth": {
+   "border-1": {
+    "$type": "dimension",
+    "$value": "1px",
+    "$description": "Default borders: cards, inputs, dividers."
+   },
+   "border-2": {
+    "$type": "dimension",
+    "$value": "2px",
+    "$description": "Focus ring, selected card, checked outlines."
+   }
+  },
+  "duration": {
+   "duration-instant": {
+    "$type": "duration",
+    "$value": "0ms",
+    "$description": "prefers-reduced-motion replacement for every duration."
+   },
+   "duration-fast": {
+    "$type": "duration",
+    "$value": "120ms",
+    "$description": "Hover, press, toggles, checkbox ticks."
+   },
+   "duration-base": {
+    "$type": "duration",
+    "$value": "200ms",
+    "$description": "Dropdowns, tooltips, accordions."
+   },
+   "duration-slow": {
+    "$type": "duration",
+    "$value": "320ms",
+    "$description": "Modals, drawers, sheets entering."
+   },
+   "duration-slower": {
+    "$type": "duration",
+    "$value": "480ms",
+    "$description": "Page transitions, skeleton shimmer cycle half."
+   }
+  },
+  "easing": {
+   "ease-standard": {
+    "$type": "cubicBezier",
+    "$value": [
+     0.2,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "$description": "Default for anything that moves on screen."
+   },
+   "ease-enter": {
+    "$type": "cubicBezier",
+    "$value": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "$description": "Elements entering (decelerate)."
+   },
+   "ease-exit": {
+    "$type": "cubicBezier",
+    "$value": [
+     0.3,
+     0.0,
+     1.0,
+     1.0
+    ],
+    "$description": "Elements leaving (accelerate)."
+   },
+   "ease-linear": {
+    "$type": "cubicBezier",
+    "$value": "linear",
+    "$description": "Progress and spinners only."
+   }
+  },
+  "zIndex": {
+   "z-base": {
+    "$type": "number",
+    "$value": "0",
+    "$description": "Default layer."
+   },
+   "z-dropdown": {
+    "$type": "number",
+    "$value": "1000",
+    "$description": "Menus, selects, comboboxes."
+   },
+   "z-sticky": {
+    "$type": "number",
+    "$value": "1100",
+    "$description": "Sticky headers and footers."
+   },
+   "z-overlay": {
+    "$type": "number",
+    "$value": "1300",
+    "$description": "Scrims."
+   },
+   "z-modal": {
+    "$type": "number",
+    "$value": "1400",
+    "$description": "Modals, drawers, bottom sheets."
+   },
+   "z-popover": {
+    "$type": "number",
+    "$value": "1500",
+    "$description": "Popovers above modals."
+   },
+   "z-toast": {
+    "$type": "number",
+    "$value": "1600",
+    "$description": "Toasts and snackbars."
+   },
+   "z-tooltip": {
+    "$type": "number",
+    "$value": "1700",
+    "$description": "Tooltips — always on top."
+   }
+  },
+  "opacity": {
+   "opacity-disabled": {
+    "$type": "number",
+    "$value": "0.4",
+    "$description": "Disabled controls (with text-disabled for labels)."
+   },
+   "opacity-hover": {
+    "$type": "number",
+    "$value": "0.08",
+    "$description": "State layer on hover over custom-coloured fills."
+   },
+   "opacity-pressed": {
+    "$type": "number",
+    "$value": "0.16",
+    "$description": "State layer on press over custom-coloured fills."
+   }
+  },
+  "breakpoint": {
+   "bp-sm": {
+    "$type": "dimension",
+    "$value": "640px",
+    "$description": "Large phones landscape and up."
+   },
+   "bp-md": {
+    "$type": "dimension",
+    "$value": "768px",
+    "$description": "Tablets portrait and up: 8 columns."
+   },
+   "bp-lg": {
+    "$type": "dimension",
+    "$value": "1024px",
+    "$description": "Tablets landscape / small laptops: 12 columns."
+   },
+   "bp-xl": {
+    "$type": "dimension",
+    "$value": "1280px",
+    "$description": "Desktop."
+   },
+   "bp-2xl": {
+    "$type": "dimension",
+    "$value": "1536px",
+    "$description": "Wide desktop."
+   }
+  },
+  "fontFamily": {
+   "sans": {
+    "$type": "fontFamily",
+    "$value": "\"Atkinson Hyperlegible Next\", Roboto, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+   },
+   "mono": {
+    "$type": "fontFamily",
+    "$value": "\"Atkinson Hyperlegible Mono\", \"Roboto Mono\", ui-monospace, Menlo, Consolas, monospace"
+   }
+  },
+  "typography": {
+   "display-xl": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "64px",
+     "lineHeight": "72px",
+     "fontWeight": 800,
+     "letterSpacing": "-0.02em"
+    },
+    "$description": "Hero headlines on marketing pages (desktop only; use display-lg ≤ md)."
+   },
+   "display-lg": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "48px",
+     "lineHeight": "56px",
+     "fontWeight": 800,
+     "letterSpacing": "-0.02em"
+    },
+    "$description": "Page heroes; landing sections."
+   },
+   "heading-1": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "40px",
+     "lineHeight": "48px",
+     "fontWeight": 700,
+     "letterSpacing": "-0.01em"
+    },
+    "$description": "One per page: the page title."
+   },
+   "heading-2": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "32px",
+     "lineHeight": "40px",
+     "fontWeight": 700,
+     "letterSpacing": "-0.01em"
+    },
+    "$description": "Section titles."
+   },
+   "heading-3": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "24px",
+     "lineHeight": "32px",
+     "fontWeight": 700,
+     "letterSpacing": "0"
+    },
+    "$description": "Card and modal titles."
+   },
+   "heading-4": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "20px",
+     "lineHeight": "28px",
+     "fontWeight": 700,
+     "letterSpacing": "0"
+    },
+    "$description": "Sub-sections, drawer titles."
+   },
+   "heading-5": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "18px",
+     "lineHeight": "24px",
+     "fontWeight": 700,
+     "letterSpacing": "0"
+    },
+    "$description": "Group labels inside cards."
+   },
+   "heading-6": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "16px",
+     "lineHeight": "24px",
+     "fontWeight": 700,
+     "letterSpacing": "0"
+    },
+    "$description": "Smallest heading; table group headers."
+   },
+   "body-lg": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "18px",
+     "lineHeight": "28px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Lead paragraphs, long-form reading."
+   },
+   "body": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "16px",
+     "lineHeight": "24px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Default text. Never smaller for paragraphs on web."
+   },
+   "body-sm": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "14px",
+     "lineHeight": "20px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Dense UI: tables, helper text, secondary info."
+   },
+   "caption": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "12px",
+     "lineHeight": "16px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Timestamps, footnotes, chart labels. Not for sentences longer than one line."
+   },
+   "label-lg": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "16px",
+     "lineHeight": "24px",
+     "fontWeight": 600,
+     "letterSpacing": "0"
+    },
+    "$description": "Large buttons, prominent tabs."
+   },
+   "label": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "14px",
+     "lineHeight": "20px",
+     "fontWeight": 600,
+     "letterSpacing": "0"
+    },
+    "$description": "Buttons, form labels, tabs, menu items."
+   },
+   "label-sm": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "12px",
+     "lineHeight": "16px",
+     "fontWeight": 600,
+     "letterSpacing": "0"
+    },
+    "$description": "Small buttons, badges, tags."
+   },
+   "overline": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.sans}",
+     "fontSize": "12px",
+     "lineHeight": "16px",
+     "fontWeight": 700,
+     "letterSpacing": "0.08em"
+    },
+    "$description": "Eyebrows above headings. Uppercase."
+   },
+   "code": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.mono}",
+     "fontSize": "14px",
+     "lineHeight": "20px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Inline code and code blocks."
+   },
+   "code-sm": {
+    "$type": "typography",
+    "$value": {
+     "fontFamily": "{fontFamily.mono}",
+     "fontSize": "12px",
+     "lineHeight": "16px",
+     "fontWeight": 400,
+     "letterSpacing": "0"
+    },
+    "$description": "Token names, dense code."
+   }
+  }
+ },
+ "light": {
+  "color": {
+   "bg": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Page background."
+   },
+   "bg-subtle": {
+    "$type": "color",
+    "$value": "{color.gray-50}",
+    "$description": "Alternate page bands, sidebars."
+   },
+   "surface": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Cards, inputs, menus."
+   },
+   "surface-raised": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Modals, popovers, toasts (pair with a shadow)."
+   },
+   "surface-sunken": {
+    "$type": "color",
+    "$value": "{color.gray-100}",
+    "$description": "Wells, code blocks, track of sliders/progress."
+   },
+   "surface-hover": {
+    "$type": "color",
+    "$value": "{color.gray-100}",
+    "$description": "Hover fill for rows, menu items, ghost buttons."
+   },
+   "surface-pressed": {
+    "$type": "color",
+    "$value": "{color.gray-200}",
+    "$description": "Pressed fill for rows, menu items, ghost buttons."
+   },
+   "surface-inverse": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Tooltips, snackbars — the inverted surface."
+   },
+   "border": {
+    "$type": "color",
+    "$value": "{color.gray-200}",
+    "$description": "Decorative dividers and card outlines (not for controls)."
+   },
+   "border-strong": {
+    "$type": "color",
+    "$value": "{color.gray-500}",
+    "$description": "Input, checkbox and radio borders — ≥3:1 on bg and surface in both themes."
+   },
+   "text": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Primary text on bg, surface, surface-raised (18.9:1 light, 17:1 dark)."
+   },
+   "text-muted": {
+    "$type": "color",
+    "$value": "{color.gray-600}",
+    "$description": "Secondary text, helper text, captions on bg/surface (≥6.7:1)."
+   },
+   "text-subtle": {
+    "$type": "color",
+    "$value": "{color.gray-500}",
+    "$description": "Placeholders, metadata on bg/surface (≥4.5:1). Not for body copy."
+   },
+   "text-disabled": {
+    "$type": "color",
+    "$value": "{color.gray-400}",
+    "$description": "Disabled labels only (exempt from contrast)."
+   },
+   "text-inverse": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text on surface-inverse and on action."
+   },
+   "icon": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Default icon colour."
+   },
+   "icon-muted": {
+    "$type": "color",
+    "$value": "{color.gray-600}",
+    "$description": "Secondary icons (≥3:1 needed, has 6.7:1)."
+   },
+   "action": {
+    "$type": "color",
+    "$value": "{color.primary-950}",
+    "$description": "Primary button fill, selected states, switch on, checkbox checked. Brand slot: light reads primary-950."
+   },
+   "action-hover": {
+    "$type": "color",
+    "$value": "{color.primary-800}",
+    "$description": "Hover on action fills."
+   },
+   "action-pressed": {
+    "$type": "color",
+    "$value": "{color.gray-1000}",
+    "$description": "Pressed on action fills."
+   },
+   "on-action": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on action fills."
+   },
+   "focus-ring": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "2px focus outline with a 2px offset in bg colour — ≥3:1 against every surface."
+   },
+   "link": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Links are ink + underline; never colour alone."
+   },
+   "overlay": {
+    "$type": "color",
+    "$value": "rgba(0, 0, 0, 0.56)",
+    "$description": "Scrim behind modals and drawers."
+   },
+   "danger": {
+    "$type": "color",
+    "$value": "{color.red-600}",
+    "$description": "Errors, destructive actions. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "danger-solid": {
+    "$type": "color",
+    "$value": "{color.red-600}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-danger-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on danger-solid."
+   },
+   "danger-bg": {
+    "$type": "color",
+    "$value": "{color.red-50}",
+    "$description": "Tinted background for danger alerts and fields."
+   },
+   "danger-border": {
+    "$type": "color",
+    "$value": "{color.red-300}",
+    "$description": "Border of danger alerts; error-state input border uses `danger`."
+   },
+   "warning": {
+    "$type": "color",
+    "$value": "{color.amber-600}",
+    "$description": "Caution, pending risk. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "warning-solid": {
+    "$type": "color",
+    "$value": "{color.amber-400}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-warning-solid": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on warning-solid."
+   },
+   "warning-bg": {
+    "$type": "color",
+    "$value": "{color.amber-50}",
+    "$description": "Tinted background for warning alerts and fields."
+   },
+   "warning-border": {
+    "$type": "color",
+    "$value": "{color.amber-300}",
+    "$description": "Border of warning alerts; error-state input border uses `warning`."
+   },
+   "success": {
+    "$type": "color",
+    "$value": "{color.green-700}",
+    "$description": "Completion, positive status. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "success-solid": {
+    "$type": "color",
+    "$value": "{color.green-600}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-success-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on success-solid."
+   },
+   "success-bg": {
+    "$type": "color",
+    "$value": "{color.green-50}",
+    "$description": "Tinted background for success alerts and fields."
+   },
+   "success-border": {
+    "$type": "color",
+    "$value": "{color.green-300}",
+    "$description": "Border of success alerts; error-state input border uses `success`."
+   },
+   "info": {
+    "$type": "color",
+    "$value": "{color.blue-600}",
+    "$description": "Neutral information, tips. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "info-solid": {
+    "$type": "color",
+    "$value": "{color.blue-600}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-info-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on info-solid."
+   },
+   "info-bg": {
+    "$type": "color",
+    "$value": "{color.blue-50}",
+    "$description": "Tinted background for info alerts and fields."
+   },
+   "info-border": {
+    "$type": "color",
+    "$value": "{color.blue-300}",
+    "$description": "Border of info alerts; error-state input border uses `info`."
+   }
+  },
+  "shadow": {
+   "shadow-0": {
+    "$type": "shadow",
+    "$value": "none"
+   },
+   "shadow-1": {
+    "$type": "shadow",
+    "$value": "0px 1px 2px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04)"
+   },
+   "shadow-2": {
+    "$type": "shadow",
+    "$value": "0px 4px 8px rgba(0, 0, 0, 0.08), 0px 2px 4px rgba(0, 0, 0, 0.04)"
+   },
+   "shadow-3": {
+    "$type": "shadow",
+    "$value": "0px 8px 24px rgba(0, 0, 0, 0.12), 0px 2px 8px rgba(0, 0, 0, 0.06)"
+   },
+   "shadow-4": {
+    "$type": "shadow",
+    "$value": "0px 16px 48px rgba(0, 0, 0, 0.16), 0px 4px 16px rgba(0, 0, 0, 0.08)"
+   }
+  }
+ },
+ "dark": {
+  "color": {
+   "bg": {
+    "$type": "color",
+    "$value": "#0b0b0b",
+    "$description": "Page background."
+   },
+   "bg-subtle": {
+    "$type": "color",
+    "$value": "#121212",
+    "$description": "Alternate page bands, sidebars."
+   },
+   "surface": {
+    "$type": "color",
+    "$value": "#161616",
+    "$description": "Cards, inputs, menus."
+   },
+   "surface-raised": {
+    "$type": "color",
+    "$value": "#1e1e1e",
+    "$description": "Modals, popovers, toasts (pair with a shadow)."
+   },
+   "surface-sunken": {
+    "$type": "color",
+    "$value": "#0b0b0b",
+    "$description": "Wells, code blocks, track of sliders/progress."
+   },
+   "surface-hover": {
+    "$type": "color",
+    "$value": "#242424",
+    "$description": "Hover fill for rows, menu items, ghost buttons."
+   },
+   "surface-pressed": {
+    "$type": "color",
+    "$value": "#2e2e2e",
+    "$description": "Pressed fill for rows, menu items, ghost buttons."
+   },
+   "surface-inverse": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "Tooltips, snackbars — the inverted surface."
+   },
+   "border": {
+    "$type": "color",
+    "$value": "#2e2e2e",
+    "$description": "Decorative dividers and card outlines (not for controls)."
+   },
+   "border-strong": {
+    "$type": "color",
+    "$value": "#8a8a8a",
+    "$description": "Input, checkbox and radio borders — ≥3:1 on bg and surface in both themes."
+   },
+   "text": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "Primary text on bg, surface, surface-raised (18.9:1 light, 17:1 dark)."
+   },
+   "text-muted": {
+    "$type": "color",
+    "$value": "#b0b0b0",
+    "$description": "Secondary text, helper text, captions on bg/surface (≥6.7:1)."
+   },
+   "text-subtle": {
+    "$type": "color",
+    "$value": "#8f8f8f",
+    "$description": "Placeholders, metadata on bg/surface (≥4.5:1). Not for body copy."
+   },
+   "text-disabled": {
+    "$type": "color",
+    "$value": "#5c5c5c",
+    "$description": "Disabled labels only (exempt from contrast)."
+   },
+   "text-inverse": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text on surface-inverse and on action."
+   },
+   "icon": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "Default icon colour."
+   },
+   "icon-muted": {
+    "$type": "color",
+    "$value": "#b0b0b0",
+    "$description": "Secondary icons (≥3:1 needed, has 6.7:1)."
+   },
+   "action": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "Primary button fill, selected states, switch on, checkbox checked. Brand slot: light reads primary-950."
+   },
+   "action-hover": {
+    "$type": "color",
+    "$value": "{color.gray-300}",
+    "$description": "Hover on action fills."
+   },
+   "action-pressed": {
+    "$type": "color",
+    "$value": "{color.gray-400}",
+    "$description": "Pressed on action fills."
+   },
+   "on-action": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on action fills."
+   },
+   "focus-ring": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "2px focus outline with a 2px offset in bg colour — ≥3:1 against every surface."
+   },
+   "link": {
+    "$type": "color",
+    "$value": "#f5f5f5",
+    "$description": "Links are ink + underline; never colour alone."
+   },
+   "overlay": {
+    "$type": "color",
+    "$value": "rgba(0, 0, 0, 0.72)",
+    "$description": "Scrim behind modals and drawers."
+   },
+   "danger": {
+    "$type": "color",
+    "$value": "{color.red-400}",
+    "$description": "Errors, destructive actions. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "danger-solid": {
+    "$type": "color",
+    "$value": "{color.red-400}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-danger-solid": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on danger-solid."
+   },
+   "danger-bg": {
+    "$type": "color",
+    "$value": "#2a1414",
+    "$description": "Tinted background for danger alerts and fields."
+   },
+   "danger-border": {
+    "$type": "color",
+    "$value": "{color.red-700}",
+    "$description": "Border of danger alerts; error-state input border uses `danger`."
+   },
+   "warning": {
+    "$type": "color",
+    "$value": "{color.amber-400}",
+    "$description": "Caution, pending risk. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "warning-solid": {
+    "$type": "color",
+    "$value": "{color.amber-400}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-warning-solid": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on warning-solid."
+   },
+   "warning-bg": {
+    "$type": "color",
+    "$value": "#2a1f0a",
+    "$description": "Tinted background for warning alerts and fields."
+   },
+   "warning-border": {
+    "$type": "color",
+    "$value": "{color.amber-700}",
+    "$description": "Border of warning alerts; error-state input border uses `warning`."
+   },
+   "success": {
+    "$type": "color",
+    "$value": "{color.green-400}",
+    "$description": "Completion, positive status. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "success-solid": {
+    "$type": "color",
+    "$value": "{color.green-400}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-success-solid": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on success-solid."
+   },
+   "success-bg": {
+    "$type": "color",
+    "$value": "#0f2416",
+    "$description": "Tinted background for success alerts and fields."
+   },
+   "success-border": {
+    "$type": "color",
+    "$value": "{color.green-700}",
+    "$description": "Border of success alerts; error-state input border uses `success`."
+   },
+   "info": {
+    "$type": "color",
+    "$value": "{color.blue-400}",
+    "$description": "Neutral information, tips. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "info-solid": {
+    "$type": "color",
+    "$value": "{color.blue-400}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-info-solid": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Text/icons on info-solid."
+   },
+   "info-bg": {
+    "$type": "color",
+    "$value": "#111d33",
+    "$description": "Tinted background for info alerts and fields."
+   },
+   "info-border": {
+    "$type": "color",
+    "$value": "{color.blue-700}",
+    "$description": "Border of info alerts; error-state input border uses `info`."
+   }
+  },
+  "shadow": {
+   "shadow-0": {
+    "$type": "shadow",
+    "$value": "none"
+   },
+   "shadow-1": {
+    "$type": "shadow",
+    "$value": "0px 1px 2px rgba(0, 0, 0, 0.5)"
+   },
+   "shadow-2": {
+    "$type": "shadow",
+    "$value": "0px 4px 8px rgba(0, 0, 0, 0.6)"
+   },
+   "shadow-3": {
+    "$type": "shadow",
+    "$value": "0px 8px 24px rgba(0, 0, 0, 0.7)"
+   },
+   "shadow-4": {
+    "$type": "shadow",
+    "$value": "0px 16px 48px rgba(0, 0, 0, 0.8)"
+   }
+  }
+ },
+ "$themes": [
+  {
+   "name": "Light",
+   "selectedTokenSets": {
+    "global": "source",
+    "light": "enabled"
+   }
+  },
+  {
+   "name": "Dark",
+   "selectedTokenSets": {
+    "global": "source",
+    "dark": "enabled"
+   }
+  },
+  {
+   "name": "High contrast",
+   "selectedTokenSets": {
+    "global": "source",
+    "high-contrast": "enabled"
+   }
+  }
+ ],
+ "$metadata": {
+  "tokenSetOrder": [
+   "global",
+   "light",
+   "dark",
+   "high-contrast"
+  ]
+ },
+ "high-contrast": {
+  "color": {
+   "bg": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Page background."
+   },
+   "bg-subtle": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Alternate page bands, sidebars."
+   },
+   "surface": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Cards, inputs, menus."
+   },
+   "surface-raised": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Modals, popovers, toasts (pair with a shadow)."
+   },
+   "surface-sunken": {
+    "$type": "color",
+    "$value": "{color.gray-50}",
+    "$description": "Wells, code blocks, track of sliders/progress."
+   },
+   "surface-hover": {
+    "$type": "color",
+    "$value": "{color.gray-100}",
+    "$description": "Hover fill for rows, menu items, ghost buttons."
+   },
+   "surface-pressed": {
+    "$type": "color",
+    "$value": "{color.gray-200}",
+    "$description": "Pressed fill for rows, menu items, ghost buttons."
+   },
+   "surface-inverse": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Tooltips, snackbars — the inverted surface."
+   },
+   "border": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Decorative dividers and card outlines (not for controls)."
+   },
+   "border-strong": {
+    "$type": "color",
+    "$value": "{color.gray-950}",
+    "$description": "Input, checkbox and radio borders — ≥3:1 on bg and surface in both themes."
+   },
+   "text": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Primary text on bg, surface, surface-raised (18.9:1 light, 17:1 dark)."
+   },
+   "text-muted": {
+    "$type": "color",
+    "$value": "#333333",
+    "$description": "Secondary text, helper text, captions on bg/surface (≥6.7:1)."
+   },
+   "text-subtle": {
+    "$type": "color",
+    "$value": "{color.gray-700}",
+    "$description": "Placeholders, metadata on bg/surface (≥4.5:1). Not for body copy."
+   },
+   "text-disabled": {
+    "$type": "color",
+    "$value": "{color.gray-500}",
+    "$description": "Disabled labels only (exempt from contrast)."
+   },
+   "text-inverse": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text on surface-inverse and on action."
+   },
+   "icon": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Default icon colour."
+   },
+   "icon-muted": {
+    "$type": "color",
+    "$value": "#333333",
+    "$description": "Secondary icons (≥3:1 needed, has 6.7:1)."
+   },
+   "action": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Primary button fill, selected states, switch on, checkbox checked. Brand slot: light reads primary-950."
+   },
+   "action-hover": {
+    "$type": "color",
+    "$value": "{color.gray-800}",
+    "$description": "Hover on action fills."
+   },
+   "action-pressed": {
+    "$type": "color",
+    "$value": "{color.gray-700}",
+    "$description": "Pressed on action fills."
+   },
+   "on-action": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on action fills."
+   },
+   "focus-ring": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "2px focus outline with a 2px offset in bg colour — ≥3:1 against every surface."
+   },
+   "link": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Links are ink + underline; never colour alone."
+   },
+   "overlay": {
+    "$type": "color",
+    "$value": "rgba(0, 0, 0, 0.72)",
+    "$description": "Scrim behind modals and drawers."
+   },
+   "danger": {
+    "$type": "color",
+    "$value": "{color.red-800}",
+    "$description": "Errors, destructive actions. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "danger-solid": {
+    "$type": "color",
+    "$value": "{color.red-800}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-danger-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on danger-solid."
+   },
+   "danger-bg": {
+    "$type": "color",
+    "$value": "{color.red-50}",
+    "$description": "Tinted background for danger alerts and fields."
+   },
+   "danger-border": {
+    "$type": "color",
+    "$value": "{color.red-800}",
+    "$description": "Border of danger alerts; error-state input border uses `danger`."
+   },
+   "warning": {
+    "$type": "color",
+    "$value": "{color.amber-800}",
+    "$description": "Caution, pending risk. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "warning-solid": {
+    "$type": "color",
+    "$value": "{color.amber-800}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-warning-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on warning-solid."
+   },
+   "warning-bg": {
+    "$type": "color",
+    "$value": "{color.amber-50}",
+    "$description": "Tinted background for warning alerts and fields."
+   },
+   "warning-border": {
+    "$type": "color",
+    "$value": "{color.amber-800}",
+    "$description": "Border of warning alerts; error-state input border uses `warning`."
+   },
+   "success": {
+    "$type": "color",
+    "$value": "{color.green-800}",
+    "$description": "Completion, positive status. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "success-solid": {
+    "$type": "color",
+    "$value": "{color.green-800}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-success-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on success-solid."
+   },
+   "success-bg": {
+    "$type": "color",
+    "$value": "{color.green-50}",
+    "$description": "Tinted background for success alerts and fields."
+   },
+   "success-border": {
+    "$type": "color",
+    "$value": "{color.green-800}",
+    "$description": "Border of success alerts; error-state input border uses `success`."
+   },
+   "info": {
+    "$type": "color",
+    "$value": "{color.blue-800}",
+    "$description": "Neutral information, tips. Text and icons on bg/surface (≥4.5:1). Always pair with an icon or word."
+   },
+   "info-solid": {
+    "$type": "color",
+    "$value": "{color.blue-800}",
+    "$description": "Solid fill (badges, filled alerts, destructive button)."
+   },
+   "on-info-solid": {
+    "$type": "color",
+    "$value": "#ffffff",
+    "$description": "Text/icons on info-solid."
+   },
+   "info-bg": {
+    "$type": "color",
+    "$value": "{color.blue-50}",
+    "$description": "Tinted background for info alerts and fields."
+   },
+   "info-border": {
+    "$type": "color",
+    "$value": "{color.blue-800}",
+    "$description": "Border of info alerts; error-state input border uses `info`."
+   }
+  },
+  "shadow": {
+   "shadow-0": {
+    "$type": "shadow",
+    "$value": "none"
+   },
+   "shadow-1": {
+    "$type": "shadow",
+    "$value": "0px 1px 2px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.04)"
+   },
+   "shadow-2": {
+    "$type": "shadow",
+    "$value": "0px 4px 8px rgba(0, 0, 0, 0.08), 0px 2px 4px rgba(0, 0, 0, 0.04)"
+   },
+   "shadow-3": {
+    "$type": "shadow",
+    "$value": "0px 8px 24px rgba(0, 0, 0, 0.12), 0px 2px 8px rgba(0, 0, 0, 0.06)"
+   },
+   "shadow-4": {
+    "$type": "shadow",
+    "$value": "0px 16px 48px rgba(0, 0, 0, 0.16), 0px 4px 16px rgba(0, 0, 0, 0.08)"
+   }
+  }
+ }
+}

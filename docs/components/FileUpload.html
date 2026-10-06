@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><link rel="stylesheet" href="../lib/tokens.css"><link rel="stylesheet" href="../lib/aa-nad.css"><script src="../lib/react.production.min.js"></script><script src="../lib/react-dom.production.min.js"></script><script src="../lib/aa-nad.js"></script><script>(function(){var t=new URLSearchParams(location.search).get("theme");if(t)document.documentElement.setAttribute("data-theme",t);addEventListener("message",function(e){if(e.data&&e.data.theme)document.documentElement.setAttribute("data-theme",e.data.theme)})})()</script><meta charset="utf-8"><title>FileUpload — preview</title><style>body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.stack{display:flex;flex-direction:column;gap:16px}.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 24px}.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var N=window.AaNAD,h=React.createElement;var ILLU="../assets/Illustrations/error-404.svg";var LOGO="../assets/Logos/module-aa-nad-horizontal.svg";var AV=["../assets/Avatars/avatar-01.svg", "../assets/Avatars/avatar-02.svg", "../assets/Avatars/avatar-03.svg", "../assets/Avatars/avatar-04.svg", "../assets/Avatars/avatar-05.svg", "../assets/Avatars/avatar-06.svg", "../assets/Avatars/avatar-07.svg", "../assets/Avatars/avatar-08.svg"];
+ReactDOM.createRoot(document.getElementById('root')).render(
+h('div',{className:'grid2'},h(N.FileUpload,{label:'Attachments',accept:'image/*,.pdf',maxSize:10485760,maxFiles:5,helperText:'Screenshots or PDFs help us fix it faster.',onRemove:function(){},onRetry:function(){},files:[
+  {id:'1',name:'checkout-flow.png',size:482304,type:'image/png',status:'done'},
+  {id:'2',name:'brand-guidelines-v3.pdf',size:3355443,type:'application/pdf',status:'uploading',progress:62},
+  {id:'3',name:'screen-recording.mov',size:52428800,type:'video/quicktime',status:'error',error:'Larger than 10.0 MB. Choose a smaller file.'}]}),
+ h('div',{className:'stack'},h(N.FileUpload,{label:'Profile photo',variant:'button',multiple:false,accept:'image/*',maxSize:2097152,capture:'user'}),h(N.FileUpload,{label:'Contract',variant:'button',multiple:false,accept:'.pdf',error:'Upload the signed contract to continue.'}),h(N.FileUpload,{label:'Archive',disabled:true,helperText:'Uploads are paused during maintenance.'})))
+);
+</script>
+</body>
+</html>
