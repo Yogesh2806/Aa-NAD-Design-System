@@ -44,7 +44,7 @@
 </html>
 ```
 
-You can load the files straight from GitHub through jsDelivr: `https://cdn.jsdelivr.net/gh/Yogesh2806/aa-nad-design-system@v1.2.0/dist/aa-nad.js` (and `/dist/aa-nad.css`, `/tokens/tokens.css`).
+You can load the files straight from GitHub through jsDelivr: `https://cdn.jsdelivr.net/gh/Yogesh2806/Aa-NAD-Design-System@v1.2.0/dist/aa-nad.js` (and `/dist/aa-nad.css`, `/tokens/tokens.css`).
 
 ## What's inside
 

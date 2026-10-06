@@ -37,7 +37,7 @@ Nothing here needs the command line.
 2. Under **Build and deployment**, set **Source** to **Deploy from a branch**. Then set **Branch** to `main` and the folder to `/docs`, and click **Save**.
 3. After a minute or two the site is live at `https://Yogesh2806.github.io/aa-nad-design-system/`.
 
-**Make the CDN links work (optional, recommended).** On the repo page, go to **Releases → Draft a new release**. Set the tag to `v1.2.0` and the title to `1.2.0`, paste the 1.2.0 notes from `CHANGELOG.md`, and click **Publish release**. jsDelivr then serves `https://cdn.jsdelivr.net/gh/Yogesh2806/aa-nad-design-system@v1.2.0/dist/aa-nad.js`.
+**Make the CDN links work (optional, recommended).** On the repo page, go to **Releases → Draft a new release**. Set the tag to `v1.2.0` and the title to `1.2.0`, paste the 1.2.0 notes from `CHANGELOG.md`, and click **Publish release**. jsDelivr then serves `https://cdn.jsdelivr.net/gh/Yogesh2806/Aa-NAD-Design-System@v1.2.0/dist/aa-nad.js`.
 
 ## 3. Publish the Figma file to Figma Community
 
@@ -58,7 +58,7 @@ Nothing here needs the command line.
 2. Fill in the form:
    - **Name:** Aa NAD Design System
    - **Description:**
-     > Universal, monochrome, accessibility-first design system for web and mobile. Variables with Light, Dark and High-contrast (WCAG AAA) modes, text and effect styles, Ionicons as components, and 15 component sets with variants and properties, all bound to tokens. Code (React, tokens) on GitHub: https://github.com/Yogesh2806/aa-nad-design-system
+     > Universal, monochrome, accessibility-first design system for web and mobile. Variables with Light, Dark and High-contrast (WCAG AAA) modes, text and effect styles, Ionicons as components, and 15 component sets with variants and properties, all bound to tokens. Code (React, tokens) on GitHub: https://github.com/Yogesh2806/Aa-NAD-Design-System
    - **Thumbnail:** use `docs/img/figma-thumbnail.png` (1920×1080).
    - **Category:** Design systems, or UI kits.
    - **Tags:** design system, accessibility, dark mode, variables, components.
