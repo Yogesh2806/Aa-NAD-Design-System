@@ -181,7 +181,7 @@ async function text(chars: string, style: string, color = 'text', name?: string,
   const t = figma.createText();
   const st = TEXT[style];
   t.fontName = st ? st.fontName : { family: FAMILY, style: STYLE_FOR[400] };
-  if (width) { t.textAutoResize = 'HEIGHT'; t.resize(width, 20); }
+  if (width) { t.resize(width, 20); t.textAutoResize = 'HEIGHT'; } // resize() resets auto-resize, so set it after
   t.characters = chars;
   if (st) await t.setTextStyleIdAsync(st.id);
   t.fills = [paint(color)];
@@ -297,7 +297,7 @@ async function buildIcons(page: Host) {
   for (const [name, v] of Object.entries(DATA.icons as Record<string, Record<string, string>>)) {
     for (const variant of ['outline', 'filled'] as const) {
       const svg = figma.createNodeFromSvg(v[variant]);
-      svg.resize(24, 24);
+      svg.rescale(24 / svg.width); // rescale scales the vectors inside; resize would only crop the frame
       const c = figma.createComponent(); c.name = `Icon/${name}/${variant}`; c.resize(24, 24); c.fills = [];
       c.appendChild(svg); svg.x = 0; svg.y = 0; svg.name = 'glyph'; svg.fills = []; svg.constraints = { horizontal: 'SCALE', vertical: 'SCALE' }; for (const d of svg.findAll(() => true)) if ('constraints' in d) (d as ConstraintMixin & SceneNode).constraints = { horizontal: 'SCALE', vertical: 'SCALE' };
       recolor(c, 'icon');
@@ -314,7 +314,7 @@ async function placeSvgs(page: Host, title: string, svgs: Record<string, string>
   let i = 0;
   for (const [name, svg] of Object.entries(svgs)) {
     const n = figma.createNodeFromSvg(svg); n.name = name;
-    const s = w / n.width; n.resize(w, n.height * s);
+    n.rescale(w / n.width);
     if (bg) { const f = frame(name, { dir: 'NONE', fill: bg, radius: 'radius-md' }); f.resize(w + 32, n.height + 32); f.appendChild(n); n.x = 16; n.y = 16; page.appendChild(f); f.x = (i % perRow) * (w + 56); f.y = y + 48 + Math.floor(i / perRow) * (n.height + 64); }
     else { page.appendChild(n); n.x = (i % perRow) * (w + 40); n.y = y + 48 + Math.floor(i / perRow) * (n.height + 40); }
     i++;
@@ -551,7 +551,7 @@ async function buildAvatar(page: Host) {
     c.clipsContent = true;
     if (type === 'Initials') { const t = add(c, await text('AR', 'label', 'blue-800', 'Initials')); t.fontSize = Math.round(size * 0.4); }
     else if (type === 'Icon') add(c, icon('person', 'filled', Math.round(size * 0.55), 'gray-700'));
-    else { c.layoutMode = 'NONE'; const a = figma.createNodeFromSvg(DATA.avatars['avatar-01']); a.resize(size, size); a.name = 'Illustration'; c.appendChild(a); a.x = 0; a.y = 0; }
+    else { c.layoutMode = 'NONE'; const a = figma.createNodeFromSvg(DATA.avatars['avatar-01']); a.rescale(size / a.width); a.name = 'Illustration'; c.appendChild(a); a.x = 0; a.y = 0; }
     comps.push(c);
   }
   const set = combine(page, comps, 'Avatar', 5, 'A person: illustration or photo → initials → icon. Always has a name (accessible label). Colour comes from a palette hue (-100 fill, -800 text).');
@@ -655,18 +655,146 @@ async function buildModal(page: Host, button: ComponentSetNode) {
 }
 
 // ---------- cover ----------
-async function buildCover(page: Host) {
-  const f = frame('Cover', { dir: 'VERTICAL', gap: 'space-24', pad: 'space-64', fill: 'bg', w: 1440, h: 960, align: 'MAX' }); f.counterAxisAlignItems = 'MIN';
-  const logo = figma.createNodeFromSvg(DATA.logos['module-aa-nad-symbol']); logo.resize(160, 160); logo.name = 'Logo'; add(f, logo);
-  add(f, await text('Aa NAD Design System', 'display-xl', 'text', 'Title'));
-  add(f, await text('A universal, monochrome, accessibility-first design system for web and mobile. Variables with Light, Dark and High-contrast modes; components bound to tokens. MIT + CC BY 4.0.', 'body-lg', 'text-muted', 'Tagline', 760));
-  page.appendChild(f);
+type AnyComp = ComponentSetNode | ComponentNode;
+function collectSets(): Record<string, AnyComp> {
+  const out: Record<string, AnyComp> = {};
+  for (const n of figma.root.findAllWithCriteria({ types: ['COMPONENT_SET'] })) out[n.name] = n;
+  for (const n of figma.root.findAllWithCriteria({ types: ['COMPONENT'] })) if (n.name === 'Tabs' && n.parent && n.parent.type !== 'COMPONENT_SET') out['Tabs'] = n;
+  return out;
+}
+function propKey(i: InstanceNode, name: string) { return Object.keys(i.componentProperties).find(k => k.split('#')[0] === name); }
+function inst(sets: Record<string, AnyComp>, name: string, variant?: Record<string, string>, props?: Record<string, string | boolean>): InstanceNode | null {
+  const s = sets[name]; if (!s) { warn(`cover: missing component ${name}`); return null; }
+  let c: ComponentNode;
+  try { c = s.type === 'COMPONENT_SET' ? variantOf(s, variant || {}) : s; } catch (e: any) { warn('cover: ' + e.message); return null; }
+  const i = c.createInstance();
+  if (props) { const p: Record<string, string | boolean> = {}; for (const [k, v] of Object.entries(props)) { const key = propKey(i, k); if (key) p[key] = v; } try { if (Object.keys(p).length) i.setProperties(p); } catch (e: any) { warn('cover props: ' + e.message); } }
+  return i;
+}
+function put(parent: FrameNode, n: SceneNode | null) { if (n) parent.appendChild(n); return n; }
+// Rebuilds the Cover frame from live instances of the library's own components, so it follows the variables.
+async function buildCover(page: PageNode, sets: Record<string, AnyComp>) {
+  page.children.filter(n => n.name === 'Cover').forEach(n => n.remove());
+  const f = frame('Cover', { dir: 'HORIZONTAL', gap: 'space-64', pad: 'space-80', fill: 'bg', w: 1440, h: 960, cross: 'CENTER' });
+  page.appendChild(f); f.x = 0; f.y = 0;
+  // Left: identity
+  const L = frame('Intro', { dir: 'VERTICAL', gap: 'space-24', fill: null, w: 600 }); L.counterAxisAlignItems = 'MIN'; f.appendChild(L);
+  const logo = figma.createNodeFromSvg(DATA.logos['module-aa-nad-horizontal']); logo.name = 'Logo'; logo.rescale(64 / logo.height); L.appendChild(logo);
+  add(L, await text('OPEN-SOURCE DESIGN SYSTEM · V1.2', 'overline', 'text-muted', 'Eyebrow'));
+  const t = add(L, await text('Design\nSystem.', 'display-xl', 'text', 'Title')); t.fontSize = 120; t.lineHeight = { unit: 'PIXELS', value: 112 }; t.letterSpacing = { unit: 'PERCENT', value: -4 };
+  add(L, await text('A universal, monochrome, accessibility-first design system for web and mobile — written so designers, developers and AI agents can all follow it.', 'body-lg', 'text-muted', 'Tagline', 560));
+  const chips = frame('Highlights', { gap: 'space-8', fill: null, w: 600 }); chips.layoutWrap = 'WRAP'; chips.counterAxisSpacing = 8; L.appendChild(chips);
+  for (const c of ['Variables · 3 modes', '15 components', '98 icons', 'WCAG AA / AAA', 'Open source']) {
+    const ch = frame(c, { pad: ['space-4', 'space-12'], fill: 'surface', stroke: 'text', strokeW: 1.5, radius: 'radius-sm' }); ch.appendChild(await text(c, 'code-sm', 'text')); chips.appendChild(ch);
+  }
+  const brand = frame('Brand ramp', { dir: 'VERTICAL', gap: 'space-8', fill: null }); brand.counterAxisAlignItems = 'MIN'; L.appendChild(brand);
+  const ramp = frame('Swatches', { gap: 'space-4', fill: null }); brand.appendChild(ramp);
+  for (const [n] of DATA.alias) { const r = figma.createRectangle(); r.name = n; r.resize(40, 40); r.cornerRadius = 4; r.fills = [paint(n)]; r.strokes = [paint('border')]; ramp.appendChild(r); }
+  add(brand, await text('brand/primary — swap these 11 variables to recolour every component.', 'code-sm', 'text-muted', 'Ramp note', 560));
+  add(L, await text('github.com/Yogesh2806/Aa-NAD-Design-System · MIT + CC BY 4.0', 'code-sm', 'text-subtle', 'Meta'));
+  // Right: live component showcase
+  const S = frame('Showcase', { dir: 'VERTICAL', gap: 'space-24', pad: 'space-40', fill: 'surface-sunken', radius: 'radius-lg', align: 'CENTER' }); S.counterAxisAlignItems = 'MIN';
+  f.appendChild(S); S.layoutGrow = 1; S.layoutAlign = 'STRETCH';
+  const row = (name: string, cross: 'MIN' | 'CENTER' | 'MAX' = 'CENTER') => { const r = frame(name, { gap: 'space-16', fill: null, cross }); S.appendChild(r); return r; };
+  const r1 = row('Card & controls', 'MIN');
+  const card = put(r1, inst(sets, 'Card', { Variant: 'Elevated' }, { Title: 'Release 1.2', Body: 'Tokens, components and docs — shipped together.' }));
+  const ctr = frame('Controls', { dir: 'VERTICAL', gap: 'space-16', fill: null }); ctr.counterAxisAlignItems = 'MIN'; r1.appendChild(ctr);
+  put(ctr, inst(sets, 'Switch', { On: 'True', State: 'Default' }, { Label: 'Dark mode' }));
+  put(ctr, inst(sets, 'Switch', { On: 'False', State: 'Default' }, { Label: 'High contrast' }));
+  put(ctr, inst(sets, 'Checkbox', { Checked: 'True', State: 'Default' }, { Label: 'Use my brand colour' }));
+  put(ctr, inst(sets, 'Radio', { Selected: 'True', State: 'Default' }, { Label: 'Monthly billing' }));
+  const r2 = row('Buttons');
+  put(r2, inst(sets, 'Button', { Variant: 'Primary', Size: 'md', State: 'Default' }, { Label: 'Get started', 'Show end icon': true }));
+  put(r2, inst(sets, 'Button', { Variant: 'Secondary', Size: 'md', State: 'Default' }, { Label: 'Read the docs' }));
+  put(r2, inst(sets, 'Button', { Variant: 'Ghost', Size: 'md', State: 'Default' }, { Label: 'Figma' }));
+  put(r2, inst(sets, 'IconButton', { Variant: 'Secondary', Size: 'md', State: 'Default' }));
+  const r3 = row('Badges & tags');
+  put(r3, inst(sets, 'Badge', { Tone: 'Success', Style: 'Solid' }, { Label: 'Live' }));
+  put(r3, inst(sets, 'Badge', { Tone: 'Info', Style: 'Subtle' }, { Label: 'In review' }));
+  put(r3, inst(sets, 'Badge', { Tone: 'Warning', Style: 'Outline' }, { Label: 'Beta' }));
+  put(r3, inst(sets, 'Tag', { Type: 'Selected' }, { Label: 'Design' }));
+  put(r3, inst(sets, 'Tag', { Type: 'Removable' }, { Label: 'Tokens' }));
+  const r4 = row('Field & people', 'MAX');
+  put(r4, inst(sets, 'TextField', { Size: 'md', State: 'Focus' }, { Label: 'Email', Value: 'you@company.com', Helper: 'We never share it.' }));
+  for (const ty of ['Initials', 'Illustration', 'Icon']) put(r4, inst(sets, 'Avatar', { Type: ty, Size: '48' }));
+  const r5 = row('Tabs'); put(r5, inst(sets, 'Tabs'));
+  const r6 = row('Alert'); put(r6, inst(sets, 'Alert', { Tone: 'Success' }, { Title: 'Library ready', Body: '207 variables, 22 styles and 15 component sets, all bound to tokens.', Dismissible: false }));
+  return f;
+}
+async function loadExisting() {
+  await figma.loadAllPagesAsync();
+  const vars = await figma.variables.getLocalVariablesAsync();
+  const cols = await figma.variables.getLocalVariableCollectionsAsync();
+  const colName = (v: Variable) => { const c = cols.find(c => c.id === v.variableCollectionId); return c ? c.name : ''; };
+  const find = (coll: string, name: string) => vars.find(v => v.name === name && colName(v) === coll);
+  for (const [n] of DATA.prim) { const v = find('Primitives', 'color/' + primName(n)); if (v) VARS[n] = v; }
+  for (const [n] of DATA.alias) { const v = find('Primitives', 'brand/' + primName(n)); if (v) VARS[n] = v; }
+  for (const [n] of DATA.sem) { const v = find('Color', semName(n)); if (v) VARS[n] = v; }
+  colorCollection = cols.find(c => c.name === 'Color') || null;
+  for (const [n] of DATA.space) { const v = find('Spacing', 'space/' + n.replace('space-', '')); if (v) FLOATS[n] = v; }
+  for (const [n] of DATA.radius) { const v = find('Radius', 'radius/' + n.replace('radius-', '')); if (v) FLOATS[n] = v; }
+  for (const st of await figma.getLocalTextStylesAsync()) TEXT[st.name.split('/').pop() as string] = st;
+  for (const st of await figma.getLocalEffectStylesAsync()) EFFECT[st.name.split('/').pop() as string] = st;
+  for (const c of figma.root.findAllWithCriteria({ types: ['COMPONENT'] })) if (c.name.startsWith('Icon/')) ICON[c.name.slice(5)] = c;
+}
+// Repairs files built by v1.2.0, where SVG frames were resized without scaling their vectors and wrapped text had a fixed height.
+function repairSvg(node: FrameNode, svg: string): boolean {
+  const kids = node.children as SceneNode[]; if (!kids.length) return false;
+  let ext = 0; for (const k of kids) ext = Math.max(ext, k.x + k.width, k.y + k.height);
+  if (ext <= Math.max(node.width, node.height) * 1.2) return false; // already scaled
+  const tmp = figma.createNodeFromSvg(svg); const w0 = tmp.width; tmp.remove();
+  const s = node.width / w0;
+  for (const k of kids) { k.x *= s; k.y *= s; if ('rescale' in k) (k as any).rescale(s); }
+  return true;
+}
+function insideInstance(n: BaseNode) { let p = n.parent; while (p) { if (p.type === 'INSTANCE') return true; p = p.parent; } return false; }
+async function repairFile() {
+  let svgs = 0, texts = 0;
+  for (const [key, c] of Object.entries(ICON)) {
+    const [name, variant] = key.split('/'); const g = c.children.find(n => n.name === 'glyph') as FrameNode | undefined;
+    const src = (DATA.icons as any)[name] && (DATA.icons as any)[name][variant];
+    if (g && g.width > c.width * 1.2) { g.rescale(c.width / g.width); g.x = 0; g.y = 0; svgs++; } // glyph frame never shrank
+    else if (g && src && repairSvg(g, src)) svgs++;
+    // v1.2.0 shrank icon shapes but kept the 512-grid stroke (32px) — scale strokes to the 24px icon (1.5px).
+    if (g) for (const v of g.findAll(n => 'strokeWeight' in n) as (SceneNode & MinimalStrokesMixin)[]) {
+      const w = v.strokeWeight; if (typeof w === 'number' && w > c.width / 8) { v.strokeWeight = w * c.width / 512; svgs++; }
+    }
+  }
+  const pools: Record<string, string>[] = [DATA.logos, DATA.illus, DATA.avatars];
+  for (const n of figma.root.findAllWithCriteria({ types: ['FRAME'] })) {
+    if (insideInstance(n)) continue;
+    let src: string | undefined;
+    for (const pool of pools) if (pool[n.name]) src = pool[n.name];
+    if (n.name === 'Illustration' && n.parent && n.parent.type === 'COMPONENT') src = DATA.avatars['avatar-01'];
+    const par = n.parent as (FrameNode | ComponentNode) | null;
+    if (src && n.name === 'Illustration' && par && par.type === 'COMPONENT' && n.width > par.width * 1.2) { n.rescale(par.width / n.width); n.x = 0; n.y = 0; svgs++; }
+    else if (src && repairSvg(n, src)) svgs++;
+  }
+  for (const t of figma.root.findAllWithCriteria({ types: ['TEXT'] })) {
+    if (t.textAutoResize !== 'NONE' || insideInstance(t)) continue;
+    if (t.fontName !== figma.mixed) await figma.loadFontAsync(t.fontName as FontName);
+    t.textAutoResize = 'HEIGHT'; texts++;
+  }
+  log(`Repaired ${svgs} vector frames and ${texts} text boxes`);
+  return svgs + texts;
+}
+async function rebuildCover() {
+  await setupFonts();
+  await loadExisting();
+  if (!VARS['bg']) { figma.closePlugin('No Aa NAD library in this file — run "Build library" first.'); return; }
+  const fixed = await repairFile();
+  const cover = figma.root.children[0];
+  await figma.setCurrentPageAsync(cover);
+  const f = await buildCover(cover, collectSets());
+  figma.viewport.scrollAndZoomIntoView([f]);
+  figma.closePlugin('Cover rebuilt from live component instances' + (fixed ? `; repaired ${fixed} icons, vectors and text boxes` : '') + '.' + (issues.length ? ` ${issues.length} note(s) in the console.` : ''));
 }
 
 // ---------- main ----------
 const CANVAS: Paint[] = [{ type: 'SOLID', color: { r: 0.957, g: 0.957, b: 0.957 } }];
 function lightCanvas() { for (const p of figma.root.children) p.backgrounds = CANVAS; }
 async function main() {
+  if (figma.command === 'cover') return rebuildCover();
   // Re-running on a file that already holds the library only refreshes page backgrounds; it never builds a duplicate.
   if (figma.root.children.some(p => p.name === 'Foundations' || p.name === 'Cover & Foundations')) {
     lightCanvas();
@@ -679,7 +807,6 @@ async function main() {
   await buildStyles();
   probePageLimit();
   const cover = figma.root.children[0]; cover.name = LIMITED ? 'Cover & Foundations' : 'Cover';
-  await buildCover(cover);
   if (LIMITED) CURSOR.set(cover, 1160);
   const found = await docPage('Foundations', 'Foundations', 'Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.', 'Cover & Foundations');
   const iconsPage = await docPage('Icons', 'Icons', 'Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.', 'Assets');
@@ -719,6 +846,7 @@ async function main() {
       done++;
     } catch (e: any) { warn(`${name}: ${e.message}`); }
   }
+  try { await buildCover(cover, collectSets()); } catch (e: any) { warn('Cover: ' + e.message); }
   lightCanvas();
   await figma.setCurrentPageAsync(cover);
   const msg = `Aa NAD library built: ${Object.keys(VARS).length + Object.keys(FLOATS).length} variables, ${Object.keys(TEXT).length} text styles, ${Object.keys(ICON).length} icons, ${done}/15 components.` + (issues.length ? ` ${issues.length} note(s) — see the console (Plugins → Development → Show/Hide console).` : '');

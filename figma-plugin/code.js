@@ -254,8 +254,8 @@
     const st = TEXT[style];
     t.fontName = st ? st.fontName : { family: FAMILY, style: STYLE_FOR[400] };
     if (width) {
-      t.textAutoResize = "HEIGHT";
       t.resize(width, 20);
+      t.textAutoResize = "HEIGHT";
     }
     t.characters = chars;
     if (st) await t.setTextStyleIdAsync(st.id);
@@ -427,7 +427,7 @@
     for (const [name, v] of Object.entries(DATA.icons)) {
       for (const variant of ["outline", "filled"]) {
         const svg = figma.createNodeFromSvg(v[variant]);
-        svg.resize(24, 24);
+        svg.rescale(24 / svg.width);
         const c = figma.createComponent();
         c.name = `Icon/${name}/${variant}`;
         c.resize(24, 24);
@@ -461,8 +461,7 @@
     for (const [name, svg] of Object.entries(svgs)) {
       const n = figma.createNodeFromSvg(svg);
       n.name = name;
-      const s = w / n.width;
-      n.resize(w, n.height * s);
+      n.rescale(w / n.width);
       if (bg) {
         const f = frame(name, { dir: "NONE", fill: bg, radius: "radius-md" });
         f.resize(w + 32, n.height + 32);
@@ -778,7 +777,7 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
       else {
         c.layoutMode = "NONE";
         const a = figma.createNodeFromSvg(DATA.avatars["avatar-01"]);
-        a.resize(size, size);
+        a.rescale(size / a.width);
         a.name = "Illustration";
         c.appendChild(a);
         a.x = 0;
@@ -934,22 +933,252 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
     linkText(set, "Description", "A short description of what this dialog is for.", "Description");
     return set;
   }
-  async function buildCover(page) {
-    const f = frame("Cover", { dir: "VERTICAL", gap: "space-24", pad: "space-64", fill: "bg", w: 1440, h: 960, align: "MAX" });
-    f.counterAxisAlignItems = "MIN";
-    const logo = figma.createNodeFromSvg(DATA.logos["module-aa-nad-symbol"]);
-    logo.resize(160, 160);
-    logo.name = "Logo";
-    add(f, logo);
-    add(f, await text("Aa NAD Design System", "display-xl", "text", "Title"));
-    add(f, await text("A universal, monochrome, accessibility-first design system for web and mobile. Variables with Light, Dark and High-contrast modes; components bound to tokens. MIT + CC BY 4.0.", "body-lg", "text-muted", "Tagline", 760));
+  function collectSets() {
+    const out = {};
+    for (const n of figma.root.findAllWithCriteria({ types: ["COMPONENT_SET"] })) out[n.name] = n;
+    for (const n of figma.root.findAllWithCriteria({ types: ["COMPONENT"] })) if (n.name === "Tabs" && n.parent && n.parent.type !== "COMPONENT_SET") out["Tabs"] = n;
+    return out;
+  }
+  function propKey(i, name) {
+    return Object.keys(i.componentProperties).find((k) => k.split("#")[0] === name);
+  }
+  function inst(sets, name, variant, props) {
+    const s = sets[name];
+    if (!s) {
+      warn(`cover: missing component ${name}`);
+      return null;
+    }
+    let c;
+    try {
+      c = s.type === "COMPONENT_SET" ? variantOf(s, variant || {}) : s;
+    } catch (e) {
+      warn("cover: " + e.message);
+      return null;
+    }
+    const i = c.createInstance();
+    if (props) {
+      const p = {};
+      for (const [k, v] of Object.entries(props)) {
+        const key = propKey(i, k);
+        if (key) p[key] = v;
+      }
+      try {
+        if (Object.keys(p).length) i.setProperties(p);
+      } catch (e) {
+        warn("cover props: " + e.message);
+      }
+    }
+    return i;
+  }
+  function put(parent, n) {
+    if (n) parent.appendChild(n);
+    return n;
+  }
+  async function buildCover(page, sets) {
+    page.children.filter((n) => n.name === "Cover").forEach((n) => n.remove());
+    const f = frame("Cover", { dir: "HORIZONTAL", gap: "space-64", pad: "space-80", fill: "bg", w: 1440, h: 960, cross: "CENTER" });
     page.appendChild(f);
+    f.x = 0;
+    f.y = 0;
+    const L = frame("Intro", { dir: "VERTICAL", gap: "space-24", fill: null, w: 600 });
+    L.counterAxisAlignItems = "MIN";
+    f.appendChild(L);
+    const logo = figma.createNodeFromSvg(DATA.logos["module-aa-nad-horizontal"]);
+    logo.name = "Logo";
+    logo.rescale(64 / logo.height);
+    L.appendChild(logo);
+    add(L, await text("OPEN-SOURCE DESIGN SYSTEM \xB7 V1.2", "overline", "text-muted", "Eyebrow"));
+    const t = add(L, await text("Design\nSystem.", "display-xl", "text", "Title"));
+    t.fontSize = 120;
+    t.lineHeight = { unit: "PIXELS", value: 112 };
+    t.letterSpacing = { unit: "PERCENT", value: -4 };
+    add(L, await text("A universal, monochrome, accessibility-first design system for web and mobile \u2014 written so designers, developers and AI agents can all follow it.", "body-lg", "text-muted", "Tagline", 560));
+    const chips = frame("Highlights", { gap: "space-8", fill: null, w: 600 });
+    chips.layoutWrap = "WRAP";
+    chips.counterAxisSpacing = 8;
+    L.appendChild(chips);
+    for (const c of ["Variables \xB7 3 modes", "15 components", "98 icons", "WCAG AA / AAA", "Open source"]) {
+      const ch = frame(c, { pad: ["space-4", "space-12"], fill: "surface", stroke: "text", strokeW: 1.5, radius: "radius-sm" });
+      ch.appendChild(await text(c, "code-sm", "text"));
+      chips.appendChild(ch);
+    }
+    const brand = frame("Brand ramp", { dir: "VERTICAL", gap: "space-8", fill: null });
+    brand.counterAxisAlignItems = "MIN";
+    L.appendChild(brand);
+    const ramp = frame("Swatches", { gap: "space-4", fill: null });
+    brand.appendChild(ramp);
+    for (const [n] of DATA.alias) {
+      const r = figma.createRectangle();
+      r.name = n;
+      r.resize(40, 40);
+      r.cornerRadius = 4;
+      r.fills = [paint(n)];
+      r.strokes = [paint("border")];
+      ramp.appendChild(r);
+    }
+    add(brand, await text("brand/primary \u2014 swap these 11 variables to recolour every component.", "code-sm", "text-muted", "Ramp note", 560));
+    add(L, await text("github.com/Yogesh2806/Aa-NAD-Design-System \xB7 MIT + CC BY 4.0", "code-sm", "text-subtle", "Meta"));
+    const S = frame("Showcase", { dir: "VERTICAL", gap: "space-24", pad: "space-40", fill: "surface-sunken", radius: "radius-lg", align: "CENTER" });
+    S.counterAxisAlignItems = "MIN";
+    f.appendChild(S);
+    S.layoutGrow = 1;
+    S.layoutAlign = "STRETCH";
+    const row = (name, cross = "CENTER") => {
+      const r = frame(name, { gap: "space-16", fill: null, cross });
+      S.appendChild(r);
+      return r;
+    };
+    const r1 = row("Card & controls", "MIN");
+    const card = put(r1, inst(sets, "Card", { Variant: "Elevated" }, { Title: "Release 1.2", Body: "Tokens, components and docs \u2014 shipped together." }));
+    const ctr = frame("Controls", { dir: "VERTICAL", gap: "space-16", fill: null });
+    ctr.counterAxisAlignItems = "MIN";
+    r1.appendChild(ctr);
+    put(ctr, inst(sets, "Switch", { On: "True", State: "Default" }, { Label: "Dark mode" }));
+    put(ctr, inst(sets, "Switch", { On: "False", State: "Default" }, { Label: "High contrast" }));
+    put(ctr, inst(sets, "Checkbox", { Checked: "True", State: "Default" }, { Label: "Use my brand colour" }));
+    put(ctr, inst(sets, "Radio", { Selected: "True", State: "Default" }, { Label: "Monthly billing" }));
+    const r2 = row("Buttons");
+    put(r2, inst(sets, "Button", { Variant: "Primary", Size: "md", State: "Default" }, { Label: "Get started", "Show end icon": true }));
+    put(r2, inst(sets, "Button", { Variant: "Secondary", Size: "md", State: "Default" }, { Label: "Read the docs" }));
+    put(r2, inst(sets, "Button", { Variant: "Ghost", Size: "md", State: "Default" }, { Label: "Figma" }));
+    put(r2, inst(sets, "IconButton", { Variant: "Secondary", Size: "md", State: "Default" }));
+    const r3 = row("Badges & tags");
+    put(r3, inst(sets, "Badge", { Tone: "Success", Style: "Solid" }, { Label: "Live" }));
+    put(r3, inst(sets, "Badge", { Tone: "Info", Style: "Subtle" }, { Label: "In review" }));
+    put(r3, inst(sets, "Badge", { Tone: "Warning", Style: "Outline" }, { Label: "Beta" }));
+    put(r3, inst(sets, "Tag", { Type: "Selected" }, { Label: "Design" }));
+    put(r3, inst(sets, "Tag", { Type: "Removable" }, { Label: "Tokens" }));
+    const r4 = row("Field & people", "MAX");
+    put(r4, inst(sets, "TextField", { Size: "md", State: "Focus" }, { Label: "Email", Value: "you@company.com", Helper: "We never share it." }));
+    for (const ty of ["Initials", "Illustration", "Icon"]) put(r4, inst(sets, "Avatar", { Type: ty, Size: "48" }));
+    const r5 = row("Tabs");
+    put(r5, inst(sets, "Tabs"));
+    const r6 = row("Alert");
+    put(r6, inst(sets, "Alert", { Tone: "Success" }, { Title: "Library ready", Body: "207 variables, 22 styles and 15 component sets, all bound to tokens.", Dismissible: false }));
+    return f;
+  }
+  async function loadExisting() {
+    await figma.loadAllPagesAsync();
+    const vars = await figma.variables.getLocalVariablesAsync();
+    const cols = await figma.variables.getLocalVariableCollectionsAsync();
+    const colName = (v) => {
+      const c = cols.find((c2) => c2.id === v.variableCollectionId);
+      return c ? c.name : "";
+    };
+    const find = (coll, name) => vars.find((v) => v.name === name && colName(v) === coll);
+    for (const [n] of DATA.prim) {
+      const v = find("Primitives", "color/" + primName(n));
+      if (v) VARS[n] = v;
+    }
+    for (const [n] of DATA.alias) {
+      const v = find("Primitives", "brand/" + primName(n));
+      if (v) VARS[n] = v;
+    }
+    for (const [n] of DATA.sem) {
+      const v = find("Color", semName(n));
+      if (v) VARS[n] = v;
+    }
+    colorCollection = cols.find((c) => c.name === "Color") || null;
+    for (const [n] of DATA.space) {
+      const v = find("Spacing", "space/" + n.replace("space-", ""));
+      if (v) FLOATS[n] = v;
+    }
+    for (const [n] of DATA.radius) {
+      const v = find("Radius", "radius/" + n.replace("radius-", ""));
+      if (v) FLOATS[n] = v;
+    }
+    for (const st of await figma.getLocalTextStylesAsync()) TEXT[st.name.split("/").pop()] = st;
+    for (const st of await figma.getLocalEffectStylesAsync()) EFFECT[st.name.split("/").pop()] = st;
+    for (const c of figma.root.findAllWithCriteria({ types: ["COMPONENT"] })) if (c.name.startsWith("Icon/")) ICON[c.name.slice(5)] = c;
+  }
+  function repairSvg(node, svg) {
+    const kids = node.children;
+    if (!kids.length) return false;
+    let ext = 0;
+    for (const k of kids) ext = Math.max(ext, k.x + k.width, k.y + k.height);
+    if (ext <= Math.max(node.width, node.height) * 1.2) return false;
+    const tmp = figma.createNodeFromSvg(svg);
+    const w0 = tmp.width;
+    tmp.remove();
+    const s = node.width / w0;
+    for (const k of kids) {
+      k.x *= s;
+      k.y *= s;
+      if ("rescale" in k) k.rescale(s);
+    }
+    return true;
+  }
+  function insideInstance(n) {
+    let p = n.parent;
+    while (p) {
+      if (p.type === "INSTANCE") return true;
+      p = p.parent;
+    }
+    return false;
+  }
+  async function repairFile() {
+    let svgs = 0, texts = 0;
+    for (const [key, c] of Object.entries(ICON)) {
+      const [name, variant] = key.split("/");
+      const g = c.children.find((n) => n.name === "glyph");
+      const src = DATA.icons[name] && DATA.icons[name][variant];
+      if (g && g.width > c.width * 1.2) {
+        g.rescale(c.width / g.width);
+        g.x = 0;
+        g.y = 0;
+        svgs++;
+      } else if (g && src && repairSvg(g, src)) svgs++;
+      if (g) for (const v of g.findAll((n) => "strokeWeight" in n)) {
+        const w = v.strokeWeight;
+        if (typeof w === "number" && w > c.width / 8) {
+          v.strokeWeight = w * c.width / 512;
+          svgs++;
+        }
+      }
+    }
+    const pools = [DATA.logos, DATA.illus, DATA.avatars];
+    for (const n of figma.root.findAllWithCriteria({ types: ["FRAME"] })) {
+      if (insideInstance(n)) continue;
+      let src;
+      for (const pool of pools) if (pool[n.name]) src = pool[n.name];
+      if (n.name === "Illustration" && n.parent && n.parent.type === "COMPONENT") src = DATA.avatars["avatar-01"];
+      const par = n.parent;
+      if (src && n.name === "Illustration" && par && par.type === "COMPONENT" && n.width > par.width * 1.2) {
+        n.rescale(par.width / n.width);
+        n.x = 0;
+        n.y = 0;
+        svgs++;
+      } else if (src && repairSvg(n, src)) svgs++;
+    }
+    for (const t of figma.root.findAllWithCriteria({ types: ["TEXT"] })) {
+      if (t.textAutoResize !== "NONE" || insideInstance(t)) continue;
+      if (t.fontName !== figma.mixed) await figma.loadFontAsync(t.fontName);
+      t.textAutoResize = "HEIGHT";
+      texts++;
+    }
+    log(`Repaired ${svgs} vector frames and ${texts} text boxes`);
+    return svgs + texts;
+  }
+  async function rebuildCover() {
+    await setupFonts();
+    await loadExisting();
+    if (!VARS["bg"]) {
+      figma.closePlugin('No Aa NAD library in this file \u2014 run "Build library" first.');
+      return;
+    }
+    const fixed = await repairFile();
+    const cover = figma.root.children[0];
+    await figma.setCurrentPageAsync(cover);
+    const f = await buildCover(cover, collectSets());
+    figma.viewport.scrollAndZoomIntoView([f]);
+    figma.closePlugin("Cover rebuilt from live component instances" + (fixed ? `; repaired ${fixed} icons, vectors and text boxes` : "") + "." + (issues.length ? ` ${issues.length} note(s) in the console.` : ""));
   }
   var CANVAS = [{ type: "SOLID", color: { r: 0.957, g: 0.957, b: 0.957 } }];
   function lightCanvas() {
     for (const p of figma.root.children) p.backgrounds = CANVAS;
   }
   async function main() {
+    if (figma.command === "cover") return rebuildCover();
     if (figma.root.children.some((p) => p.name === "Foundations" || p.name === "Cover & Foundations")) {
       lightCanvas();
       figma.closePlugin("Aa NAD library is already in this file \u2014 refreshed page backgrounds. Run in an empty file to build a new copy.");
@@ -962,7 +1191,6 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
     probePageLimit();
     const cover = figma.root.children[0];
     cover.name = LIMITED ? "Cover & Foundations" : "Cover";
-    await buildCover(cover);
     if (LIMITED) CURSOR.set(cover, 1160);
     const found = await docPage("Foundations", "Foundations", "Colour (three modes), palette, typography, spacing, radius and elevation, all bound to variables.", "Cover & Foundations");
     const iconsPage = await docPage("Icons", "Icons", "Ionicons 8 (MIT), outline for rest and filled for active states. Each icon is a component; swap them through the Icon properties on components.", "Assets");
@@ -1013,6 +1241,11 @@ ${size}/${lh} \xB7 ${weight}`, "code-sm", "text-muted", "spec", 160));
       } catch (e) {
         warn(`${name}: ${e.message}`);
       }
+    }
+    try {
+      await buildCover(cover, collectSets());
+    } catch (e) {
+      warn("Cover: " + e.message);
     }
     lightCanvas();
     await figma.setCurrentPageAsync(cover);

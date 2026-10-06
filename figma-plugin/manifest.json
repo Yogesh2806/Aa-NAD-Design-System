@@ -3,7 +3,23 @@
   "id": "1555000000000000001",
   "api": "1.0.0",
   "main": "code.js",
-  "editorType": ["figma"],
+  "editorType": [
+    "figma"
+  ],
   "documentAccess": "dynamic-page",
-  "networkAccess": { "allowedDomains": ["none"] }
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  },
+  "menu": [
+    {
+      "name": "Build library",
+      "command": "build"
+    },
+    {
+      "name": "Repair & rebuild cover",
+      "command": "cover"
+    }
+  ]
 }

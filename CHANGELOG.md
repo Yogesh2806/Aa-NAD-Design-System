@@ -2,6 +2,10 @@
 
 All notable changes follow [Semantic Versioning](https://semver.org).
 
+## 1.2.1 — 2026-10-06
+- **Figma plugin:** new cover built from live component instances; plugin menu now has *Build library* and *Repair & rebuild cover*.
+- **Fixed:** icons rendered as solid squares (strokes weren't scaled with the shapes); wrapped text boxes no longer overlap the content below.
+
 ## 1.2.0 — 2026-10-06
 - **New:** Figma library builder plugin (`figma-plugin/`). It creates variables with three modes, styles, 98 icon components and 15 bound component sets.
 - **Open source:** MIT for code, CC BY 4.0 for assets, and a GitHub Pages docs site.
