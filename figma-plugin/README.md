@@ -10,7 +10,8 @@ This plugin builds the **editable** Aa NAD library inside any Figma file. Everyt
 | Foundations | Semantic colours shown in each mode, the 12-hue palette, type specimens, spacing, radius and elevation, all bound to variables |
 | Icons | 49 curated Ionicons as components, outline and filled (98 total), named `Icon/<name>/<variant>` |
 | Logo & illustrations | Logos, 15 line illustrations and 8 avatars as editable vectors |
-| 15 component pages | Button, IconButton, TextField, Select, Checkbox, Radio, Switch, Badge, Tag, Avatar, Card, Alert, Toast, Tab (plus an example Tabs bar), Modal |
+| 15 core component pages | Button, IconButton, TextField, Select, Checkbox, Radio, Switch, Badge, Tag, Avatar, Card, Alert, Toast, Tab (plus an example Tabs bar), Modal |
+| 29 more component pages | Run **Add more components**: Link, TextArea, Combobox, MultiSelect, FileUpload, Slider, SegmentedControl, Calendar, DatePicker, Divider, List item, Table cell, Image, Carousel, Tooltip, Spinner, ProgressBar, Skeleton, EmptyState, BlockLoader, Drawer, BottomSheet, Menu item, Accordion item, Breadcrumbs, Pagination, Stepper, NavBar, TabBar item |
 
 **Variables**
 

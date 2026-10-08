@@ -18,6 +18,14 @@
       "command": "build"
     },
     {
+      "name": "Add more components",
+      "command": "more"
+    },
+    {
+      "name": "Rebuild more components",
+      "command": "more-rebuild"
+    },
+    {
       "name": "Repair & rebuild cover",
       "command": "cover"
     }

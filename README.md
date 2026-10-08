@@ -12,7 +12,7 @@
 - **249 design tokens:** an 8px grid, 4px corners, Atkinson Hyperlegible type, a 12-hue palette and a swappable brand ramp.
 - **Calm, precise motion** that respects `prefers-reduced-motion`.
 - **Assets:** Module Aa logo, Ionicons 8 (515 glyphs, outline and filled), 15 illustrations and 8 illustrated avatars.
-- **Figma:** a plugin that builds an editable library with variables, styles and component variants.
+- **Figma:** a plugin that builds an editable library with variables, styles and all 45 components as variant sets.
 
 [Live docs](https://Yogesh2806.github.io/aa-nad-design-system/) · [Brand book](guides/00-brand-book.md) · [Accessibility](guides/01-accessibility.md) · [Mobile](guides/02-mobile.md) · [Motion](guides/06-motion.md) · [Figma plugin](figma-plugin/README.md)
 

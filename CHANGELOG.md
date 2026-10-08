@@ -2,6 +2,10 @@
 
 All notable changes follow [Semantic Versioning](https://semver.org).
 
+## 1.3.0 — 2026-10-08
+- **Figma library:** 29 more component sets, so Figma now covers all 45 code components (Icon lives on the Icons page). Link, TextArea, Combobox, MultiSelect, FileUpload, Slider, SegmentedControl, Calendar, DatePicker, Divider, List item, Table cell (+ example table), Image, Carousel, Tooltip, Spinner, ProgressBar, Skeleton, EmptyState, BlockLoader, Drawer, BottomSheet, Menu item (+ example menu), Accordion item, Breadcrumbs, Pagination, Stepper, NavBar, TabBar item (+ example bar).
+- **Plugin:** new *Add more components* and *Rebuild more components* commands; composite components reuse real instances (Tag, Checkbox, Radio, Button, Calendar, Badge).
+
 ## 1.2.1 — 2026-10-06
 - **Figma plugin:** new cover built from live component instances; plugin menu now has *Build library* and *Repair & rebuild cover*.
 - **Fixed:** icons rendered as solid squares (strokes weren't scaled with the shapes); wrapped text boxes no longer overlap the content below.

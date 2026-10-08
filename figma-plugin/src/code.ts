@@ -659,7 +659,7 @@ type AnyComp = ComponentSetNode | ComponentNode;
 function collectSets(): Record<string, AnyComp> {
   const out: Record<string, AnyComp> = {};
   for (const n of figma.root.findAllWithCriteria({ types: ['COMPONENT_SET'] })) out[n.name] = n;
-  for (const n of figma.root.findAllWithCriteria({ types: ['COMPONENT'] })) if (n.name === 'Tabs' && n.parent && n.parent.type !== 'COMPONENT_SET') out['Tabs'] = n;
+  for (const n of figma.root.findAllWithCriteria({ types: ['COMPONENT'] })) if (!n.name.startsWith('Icon/') && n.parent && n.parent.type !== 'COMPONENT_SET' && !out[n.name]) out[n.name] = n;
   return out;
 }
 function propKey(i: InstanceNode, name: string) { return Object.keys(i.componentProperties).find(k => k.split('#')[0] === name); }
@@ -791,10 +791,577 @@ async function rebuildCover() {
 }
 
 // ---------- main ----------
+// ---------- more components (v1.3) ----------
+// Each builder adds one page. All fills, strokes, spacing and radii are bound to the same variables as the core 15.
+type Sets = Record<string, AnyComp>;
+const vcol = (name: string, gap = 'space-8', o: FrameOpts = {}) => { const f = frame(name, Object.assign({ dir: 'VERTICAL', gap, fill: null }, o)); f.counterAxisAlignItems = 'MIN'; return f; };
+const hrow = (name: string, gap = 'space-8', o: FrameOpts = {}) => frame(name, Object.assign({ gap, fill: null }, o));
+function rect(name: string, w: number, h: number, fill: string, r = 4) { const x = figma.createRectangle(); x.name = name; x.resize(w, h); x.cornerRadius = r; x.fills = [paint(fill)]; return x; }
+function fillW(n: SceneNode) { (n as FrameNode).layoutSizingHorizontal = 'FILL'; }
+function swapIcon(name: string) { const c = ICON[`${name}/outline`]; return c ? c.id : undefined; }
+function iconBtn(sets: Sets, name: string, variant = 'Ghost', size = 'md') { const id = swapIcon(name); return inst(sets, 'IconButton', { Variant: variant, Size: size, State: 'Default' }, id ? { Icon: id } : undefined); }
+async function setInstText(i: InstanceNode, nodeName: string, value: string) { const t = i.findOne(n => n.type === 'TEXT' && n.name === nodeName) as TextNode | null; if (!t) return; if (t.fontName !== figma.mixed) await figma.loadFontAsync(t.fontName as FontName); t.characters = value; }
+function put2(p: FrameNode | ComponentNode, n: SceneNode | null) { if (n) p.appendChild(n); return n; }
+async function fieldLabel(c: ComponentNode | FrameNode, label: string) { add(c, await text(label, 'label', 'text', 'Label')); }
+async function helper(c: ComponentNode | FrameNode, msg: string, error = false) {
+  const f = hrow('Helper', 'space-4'); if (error) add(f, icon('alert-circle', 'filled', 16, 'danger')).name = 'Error icon';
+  add(f, await text(msg, 'body-sm', error ? 'danger' : 'text-muted', 'Helper text')); add(c, f); return f;
+}
+function inputBox(state: string, h = 40) {
+  const stroke = state === 'Error' ? 'danger' : state === 'Focus' || state === 'Open' ? 'text' : state === 'Disabled' ? 'border' : 'border-strong';
+  const b = frame('Input', { pad: ['space-0', 'space-12'], gap: 'space-8', fill: state === 'Disabled' ? 'surface-sunken' : 'surface', stroke, strokeW: state === 'Focus' || state === 'Error' || state === 'Open' ? 2 : 1, radius: 'radius-sm', h });
+  if (state === 'Focus' || state === 'Open') focusRing(b);
+  return b;
+}
+async function listPanel(items: string[], selected: number, highlight: number, check = true) {
+  const p = vcol('Listbox', 'space-0', { fill: 'surface-raised', stroke: 'border', radius: 'radius-sm', pad: ['space-4', 'space-0'] });
+  if (EFFECT['shadow-3']) await p.setEffectStyleIdAsync(EFFECT['shadow-3'].id);
+  for (let i = 0; i < items.length; i++) {
+    const r = hrow('Option', 'space-8', { pad: ['space-8', 'space-12'], fill: i === highlight ? 'surface-hover' : null, cross: 'CENTER' });
+    const t = add(r, await text(items[i], 'body', 'text', 'Option label')); t.layoutGrow = 1;
+    if (check && i === selected) add(r, icon('checkmark', 'outline', 16, 'text')).name = 'Check';
+    add(p, r); fillW(r);
+  }
+  return p;
+}
+
+async function buildLink(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const v of ['Inline', 'Standalone', 'External']) for (const s of ['Default', 'Hover', 'Focus', 'Disabled']) {
+    const c = comp(`Variant=${v}, State=${s}`, { gap: 'space-4', fill: null, cross: 'CENTER' });
+    const color = s === 'Disabled' ? 'text-disabled' : 'link';
+    const t = add(c, await text(v === 'Inline' ? 'Read the guide' : v === 'External' ? 'Open on GitHub' : 'View all components', v === 'Inline' ? 'body' : 'label', color, 'Label'));
+    if (s !== 'Disabled') t.textDecoration = 'UNDERLINE';
+    if (v !== 'Inline') add(c, icon(v === 'External' ? 'share-social' : 'arrow-forward', 'outline', 16, color)).name = 'Icon';
+    if (s === 'Focus') focusRing(c);
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Link', 4, 'Navigates somewhere. Inline links sit in text and are always underlined; standalone links get an arrow; external links say where they go.');
+  return set;
+}
+async function buildTextArea(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Focus', 'Filled', 'Error', 'Disabled']) {
+    const c = comp(`State=${s}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
+    await fieldLabel(c, 'Message');
+    const b = inputBox(s, 120); b.layoutMode = 'VERTICAL'; b.primaryAxisSizingMode = 'FIXED'; b.resize(320, 120); b.paddingTop = 10; b.paddingBottom = 10; b.counterAxisAlignItems = 'MIN'; b.primaryAxisAlignItems = 'MIN';
+    const filled = s === 'Filled' || s === 'Error';
+    add(b, await text(filled ? 'Loved the new tokens — could we add a warning-subtle background?' : 'Tell us what you think…', 'body', s === 'Disabled' ? 'text-disabled' : filled ? 'text' : 'text-subtle', 'Value', 296));
+    add(c, b); fillW(b);
+    const foot = hrow('Footer', 'space-8', { w: 320 }); foot.primaryAxisAlignItems = 'SPACE_BETWEEN';
+    await helper(foot, s === 'Error' ? 'Keep it under 200 characters.' : 'Optional', s === 'Error');
+    add(foot, await text(s === 'Error' ? '212/200' : filled ? '64/200' : '0/200', 'code-sm', s === 'Error' ? 'danger' : 'text-muted', 'Count'));
+    add(c, foot); fillW(foot);
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'TextArea', 5, 'Multi-line input with a live character count. Grows with content; the label is always visible.');
+  linkText(set, 'Label', 'Message', 'Label');
+  return set;
+}
+async function buildCombobox(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Focus', 'Open', 'Error', 'Disabled']) {
+    const c = comp(`State=${s}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
+    await fieldLabel(c, 'Country');
+    const b = inputBox(s); add(b, icon('search', 'outline', 20, 'icon-muted')).name = 'Icon';
+    add(b, await text(s === 'Open' ? 'In' : 'Search countries', 'body', s === 'Open' ? 'text' : s === 'Disabled' ? 'text-disabled' : 'text-subtle', 'Value')).layoutGrow = 1;
+    const ch = add(b, icon('chevron-down', 'outline', 20, 'icon-muted')); ch.name = 'Chevron'; if (s === 'Open') ch.rotation = 180;
+    add(c, b); fillW(b);
+    if (s === 'Open') { const l = await listPanel(['India', 'Indonesia', 'Ireland', 'Iceland'], 0, 1); add(c, l); fillW(l); }
+    else await helper(c, s === 'Error' ? 'Choose a country from the list.' : 'Type to filter 195 countries', s === 'Error');
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Combobox', 5, 'Searchable select for long lists. ↓↑ to move, Enter to choose, Esc to close; the result count is announced.');
+  linkText(set, 'Label', 'Country', 'Label');
+  return set;
+}
+async function buildMultiSelect(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Filled', 'Open', 'Disabled']) {
+    const c = comp(`State=${s}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 360 }); c.counterAxisAlignItems = 'MIN';
+    await fieldLabel(c, 'Skills');
+    const b = inputBox(s === 'Filled' ? 'Default' : s, 48); b.layoutWrap = 'WRAP'; b.counterAxisSpacing = 4; b.paddingLeft = 8; b.counterAxisSizingMode = 'AUTO'; b.paddingTop = 8; b.paddingBottom = 8;
+    if (s !== 'Default') for (const t of ['Figma', 'Research']) put2(b, inst(sets, 'Tag', { Type: s === 'Disabled' ? 'Disabled' : 'Removable' }, { Label: t }));
+    add(b, await text(s === 'Default' ? 'Add skills…' : '', 'body', 'text-subtle', 'Value'));
+    add(c, b); fillW(b);
+    if (s === 'Open') {
+      const p = vcol('Listbox', 'space-8', { fill: 'surface-raised', stroke: 'border', radius: 'radius-sm', pad: 'space-12' });
+      if (EFFECT['shadow-3']) await p.setEffectStyleIdAsync(EFFECT['shadow-3'].id);
+      for (const [l, on] of [['Figma', 'True'], ['Research', 'True'], ['Prototyping', 'False'], ['Accessibility', 'False']] as [string, string][]) put2(p, inst(sets, 'Checkbox', { Checked: on, State: 'Default' }, { Label: l }));
+      add(c, p); fillW(p);
+    } else await helper(c, 'Pick up to 5. Backspace removes the last tag.');
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'MultiSelect', 4, 'Choose several values; chosen values show as removable tags inside the field.');
+  linkText(set, 'Label', 'Skills', 'Label');
+  return set;
+}
+async function buildFileUpload(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Drag over', 'Error']) {
+    const c = comp(`Type=Dropzone, State=${s}`, { dir: 'VERTICAL', gap: 'space-8', fill: s === 'Drag over' ? 'surface-hover' : 'surface', stroke: s === 'Error' ? 'danger' : s === 'Drag over' ? 'text' : 'border-strong', strokeW: s === 'Drag over' ? 2 : 1.5, dashed: s !== 'Drag over', radius: 'radius-md', pad: 'space-32', w: 400, align: 'CENTER', cross: 'CENTER' });
+    add(c, icon('cloud-upload', 'outline', 32, s === 'Error' ? 'danger' : 'icon'));
+    add(c, await text(s === 'Drag over' ? 'Drop to upload' : 'Drag files here or browse', 'label-lg', 'text', 'Title'));
+    add(c, await text(s === 'Error' ? 'That file type isn’t supported. Use PNG, JPG or PDF.' : 'PNG, JPG or PDF · up to 10 MB', 'body-sm', s === 'Error' ? 'danger' : 'text-muted', 'Hint'));
+    comps.push(c);
+  }
+  for (const s of ['Uploading', 'Complete', 'Failed']) {
+    const c = comp(`Type=File, State=${s}`, { gap: 'space-12', fill: 'surface', stroke: s === 'Failed' ? 'danger-border' : 'border', radius: 'radius-sm', pad: ['space-12', 'space-12'], w: 400, cross: 'CENTER' });
+    add(c, icon(s === 'Failed' ? 'alert-circle' : s === 'Complete' ? 'checkmark-circle' : 'document-text', s === 'Uploading' ? 'outline' : 'filled', 24, s === 'Failed' ? 'danger' : s === 'Complete' ? 'success' : 'icon'));
+    const m = vcol('Meta', 'space-4');
+    add(m, await text('brand-guidelines.pdf', 'label', 'text', 'File name'));
+    if (s === 'Uploading') { const tr = rect('Track', 300, 4, 'surface-sunken', 2); const bar = frame('Progress', { dir: 'NONE', fill: 'surface-sunken', radius: 'radius-full', w: 300, h: 4 }); const fl = rect('Fill', 180, 4, 'action', 2); bar.appendChild(fl); add(m, bar); tr.remove(); }
+    add(m, await text(s === 'Uploading' ? '2.4 of 4.0 MB · 60%' : s === 'Complete' ? '4.0 MB' : 'Upload failed. Check your connection.', 'body-sm', s === 'Failed' ? 'danger' : 'text-muted', 'Status'));
+    add(c, m); m.layoutGrow = 1;
+    put2(c, iconBtn(sets, s === 'Failed' ? 'refresh' : 'close', 'Ghost', 'sm'));
+    comps.push(c);
+  }
+  return combine(page, comps, 'FileUpload', 3, 'Dropzone or button, with per-file progress, retry and remove. Every change is announced to screen readers.');
+}
+async function buildSlider(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Focus', 'Disabled']) {
+    const c = comp(`State=${s}`, { dir: 'VERTICAL', gap: 'space-8', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
+    const top = hrow('Header', 'space-8', { w: 320 }); top.primaryAxisAlignItems = 'SPACE_BETWEEN';
+    add(top, await text('Volume', 'label', s === 'Disabled' ? 'text-disabled' : 'text', 'Label')); add(top, await text('40', 'code-sm', 'text-muted', 'Value'));
+    add(c, top); fillW(top);
+    const tr = frame('Track', { dir: 'NONE', fill: null, w: 320, h: 20 });
+    const base = rect('Rail', 320, 4, 'surface-sunken', 2); tr.appendChild(base); base.y = 8;
+    const fl = rect('Fill', 128, 4, s === 'Disabled' ? 'border-strong' : 'action', 2); tr.appendChild(fl); fl.y = 8;
+    const th = figma.createEllipse(); th.name = 'Thumb'; th.resize(20, 20); th.fills = [paint('surface')]; th.strokes = [paint(s === 'Disabled' ? 'border-strong' : 'action')]; th.strokeWeight = 2; tr.appendChild(th); th.x = 118; th.y = 0;
+    if (s === 'Focus') th.effects = [{ type: 'DROP_SHADOW', color: { r: 0, g: 0, b: 0, a: 1 }, offset: { x: 0, y: 0 }, radius: 0, spread: 3, visible: true, blendMode: 'NORMAL', showShadowBehindNode: true } as DropShadowEffect];
+    add(c, tr); if (s === 'Disabled') c.opacity = 0.6;
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Slider', 3, 'Pick a value in a range. Arrow keys step, Page Up/Down jump; the value is always shown.');
+  linkText(set, 'Label', 'Volume', 'Label'); linkText(set, 'Value', '40', 'Value');
+  return set;
+}
+async function buildSegmented(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const size of ['sm', 'md']) for (const n of [2, 3, 4]) {
+    const c = comp(`Size=${size}, Options=${n}`, { gap: 'space-2', fill: 'surface-sunken', radius: 'radius-sm', pad: 'space-2' });
+    const labels = ['Light', 'Dark', 'HC', 'Auto'].slice(0, n);
+    for (let i = 0; i < n; i++) {
+      const s = frame(`Segment ${i + 1}`, { pad: ['space-0', size === 'sm' ? 'space-12' : 'space-16'], fill: i === 0 ? 'surface' : null, stroke: i === 0 ? 'border-strong' : undefined, radius: 'radius-sm', h: size === 'sm' ? 28 : 36, align: 'CENTER', cross: 'CENTER' });
+      add(s, await text(labels[i], size === 'sm' ? 'label-sm' : 'label', i === 0 ? 'text' : 'text-muted', 'Label')); add(c, s);
+    }
+    comps.push(c);
+  }
+  return combine(page, comps, 'SegmentedControl', 3, '2–5 mutually exclusive views or modes, switched instantly. The selected segment is raised.');
+}
+async function makeCalendar(name = 'Calendar') {
+  const c = comp(name, { dir: 'VERTICAL', gap: 'space-8', fill: 'surface-raised', stroke: 'border', radius: 'radius-md', pad: 'space-16' }); c.counterAxisAlignItems = 'MIN';
+  const head = hrow('Header', 'space-8', { w: 280, cross: 'CENTER' }); head.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  add(head, icon('chevron-back', 'outline', 20, 'icon')).name = 'Previous'; add(head, await text('October 2026', 'label-lg', 'text', 'Month')); add(head, icon('chevron-forward', 'outline', 20, 'icon')).name = 'Next';
+  add(c, head);
+  const grid = vcol('Grid', 'space-2');
+  const wk = hrow('Weekdays', 'space-2'); for (const d of ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']) { const cell = frame(d, { w: 38, h: 28, align: 'CENTER', cross: 'CENTER', fill: null }); add(cell, await text(d, 'caption', 'text-muted')); add(wk, cell); }
+  add(grid, wk);
+  let day = 1 - 3; // Oct 2026 starts on Thursday
+  for (let w = 0; w < 5; w++) {
+    const r = hrow(`Week ${w + 1}`, 'space-2');
+    for (let i = 0; i < 7; i++, day++) {
+      const inMonth = day >= 1 && day <= 31; const sel = day === 14, today = day === 8;
+      const cell = frame(inMonth ? `Day ${day}` : 'Empty', { w: 38, h: 38, align: 'CENTER', cross: 'CENTER', fill: sel ? 'action' : null, stroke: today ? 'text' : undefined, strokeW: 1.5, radius: 'radius-full' });
+      if (inMonth) add(cell, await text(String(day), sel ? 'label' : 'body', sel ? 'on-action' : 'text', 'Day'));
+      add(r, cell);
+    }
+    add(grid, r);
+  }
+  add(c, grid);
+  return c;
+}
+async function buildCalendar(page: Host) {
+  const c = await makeCalendar(); c.description = 'Keyboard grid (arrows, Page Up/Down, Home/End). Today has a ring, the selected day is filled; disabled dates are dimmed.';
+  page.appendChild(c); return c;
+}
+async function buildDatePicker(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Filled', 'Open', 'Error']) {
+    const c = comp(`State=${s}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
+    await fieldLabel(c, 'Start date');
+    const b = inputBox(s); add(b, await text(s === 'Default' ? 'DD / MM / YYYY' : s === 'Error' ? '31 / 02 / 2026' : '14 / 10 / 2026', 'body', s === 'Default' ? 'text-subtle' : 'text', 'Value')).layoutGrow = 1;
+    add(b, icon('calendar', 'outline', 20, 'icon-muted')).name = 'Icon'; add(c, b); fillW(b);
+    if (s === 'Open') put2(c, inst(sets, 'Calendar')); else await helper(c, s === 'Error' ? 'That date doesn’t exist. Pick a day in February.' : 'Type a date or use the calendar', s === 'Error');
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'DatePicker', 4, 'A date field with a popover calendar. Typing always works; the calendar is a helper, not a requirement.');
+  linkText(set, 'Label', 'Start date', 'Label');
+  return set;
+}
+async function buildDivider(page: Host) {
+  const comps: ComponentNode[] = [];
+  let c = comp('Orientation=Horizontal, Label=False', { dir: 'VERTICAL', fill: null, w: 320 }); const l = rect('Line', 320, 1, 'border', 0); add(c, l); fillW(l); comps.push(c);
+  c = comp('Orientation=Horizontal, Label=True', { gap: 'space-12', fill: null, w: 320, cross: 'CENTER' });
+  const a = rect('Line', 100, 1, 'border', 0); add(c, a); a.layoutGrow = 1; add(c, await text('or', 'caption', 'text-muted', 'Label')); const b = rect('Line', 100, 1, 'border', 0); add(c, b); b.layoutGrow = 1; comps.push(c);
+  c = comp('Orientation=Vertical, Label=False', { fill: null, h: 48 }); const v = rect('Line', 1, 48, 'border', 0); add(c, v); comps.push(c);
+  return combine(page, comps, 'Divider', 3, 'Separates groups. Prefer spacing first; use a divider only when spacing alone is ambiguous.');
+}
+async function buildList(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const t of ['Text', 'Icon', 'Avatar']) for (const s of ['Default', 'Hover', 'Selected']) {
+    const c = comp(`Leading=${t}, State=${s}`, { gap: 'space-12', pad: ['space-12', 'space-16'], fill: s === 'Hover' ? 'surface-hover' : s === 'Selected' ? 'surface-sunken' : 'surface', w: 360, cross: 'CENTER' });
+    if (t === 'Icon') add(c, icon('folder', 'outline', 24, 'icon')).name = 'Leading';
+    if (t === 'Avatar') { const av = inst(sets, 'Avatar', { Type: 'Initials', Size: '40' }); if (av) { av.name = 'Leading'; add(c, av); } }
+    const m = vcol('Text', 'space-2');
+    add(m, await text(t === 'Avatar' ? 'Ana Ruiz' : 'Design tokens', 'label', 'text', 'Title')); add(m, await text(t === 'Avatar' ? 'Product designer' : 'Updated 2 hours ago', 'body-sm', 'text-muted', 'Description'));
+    add(c, m); m.layoutGrow = 1; add(c, await text('24', 'code-sm', 'text-muted', 'Meta')); add(c, icon('chevron-forward', 'outline', 20, 'icon-muted')).name = 'Chevron';
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'List item', 3, 'One row of a list: leading text, icon or avatar, a title and description, meta and a chevron for navigation.');
+  linkBool(set, 'Show meta', true, 'Meta'); linkBool(set, 'Show chevron', true, 'Chevron');
+  return set;
+}
+async function buildTable(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const t of ['Header', 'Text', 'Number', 'Status']) {
+    const c = comp(`Type=${t}`, { pad: ['space-12', 'space-16'], gap: 'space-4', fill: t === 'Header' ? 'surface-sunken' : 'surface', stroke: 'border', w: 180, align: t === 'Number' ? 'MAX' : 'MIN', cross: 'CENTER' });
+    c.strokeTopWeight = 0; c.strokeLeftWeight = 0; c.strokeRightWeight = 0; c.strokeBottomWeight = 1;
+    if (t === 'Status') put2(c, inst(sets, 'Badge', { Tone: 'Success', Style: 'Subtle' }, { Label: 'Paid' }));
+    else { add(c, await text(t === 'Header' ? 'Invoice' : t === 'Number' ? '₹12,400' : 'INV-1042', t === 'Header' ? 'label-sm' : 'body', t === 'Header' ? 'text-muted' : 'text', 'Value')); if (t === 'Header') add(c, icon('chevron-down', 'outline', 14, 'icon-muted')).name = 'Sort'; }
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Table cell', 4, 'Cells for data tables. Numbers align right; headers can sort. Always give the table a caption.');
+  // Example table built from cell instances
+  const tbl = comp('Table', { dir: 'VERTICAL', fill: 'surface', stroke: 'border', radius: 'radius-md' }); tbl.clipsContent = true; tbl.counterAxisAlignItems = 'MIN';
+  const data = [['Invoice', 'Customer', 'Amount', 'Status'], ['INV-1042', 'Acme Ltd', '₹12,400', 'Paid'], ['INV-1043', 'Northwind', '₹8,250', 'Due'], ['INV-1044', 'Globex', '₹21,900', 'Overdue']];
+  for (let r = 0; r < data.length; r++) {
+    const rw = hrow(`Row ${r + 1}`, 'space-0');
+    for (let k = 0; k < 4; k++) {
+      const type = r === 0 ? 'Header' : k === 2 ? 'Number' : k === 3 ? 'Status' : 'Text';
+      const i = variantOf(set, { Type: type }).createInstance();
+      if (type === 'Status') { const b = i.findOne(n => n.type === 'INSTANCE') as InstanceNode | null; if (b) { const tone = data[r][k] === 'Paid' ? 'Success' : data[r][k] === 'Due' ? 'Warning' : 'Danger'; try { b.setProperties({ Tone: tone }); const key = propKey(b, 'Label'); if (key) b.setProperties({ [key]: data[r][k] }); } catch (e) { } } }
+      else await setInstText(i, 'Value', data[r][k]);
+      add(rw, i);
+    }
+    add(tbl, rw);
+  }
+  tbl.description = 'Example invoice table composed from Table cell instances.';
+  page.appendChild(tbl); tbl.x = 0; tbl.y = set.y + set.height + 64;
+  return set;
+}
+async function buildImage(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const [ratio, w, h] of [['1:1', 200, 200], ['4:3', 240, 180], ['16:9', 320, 180]] as [string, number, number][]) for (const s of ['Loaded', 'Fallback']) {
+    const c = comp(`Ratio=${ratio}, State=${s}`, { dir: 'VERTICAL', fill: s === 'Loaded' ? 'gray-300' : 'surface-sunken', radius: 'radius-md', w, h, align: 'CENTER', cross: 'CENTER' }); c.clipsContent = true;
+    if (s === 'Loaded') { const ill = figma.createNodeFromSvg(DATA.illus['onboarding-welcome']); ill.rescale((h * 0.8) / ill.height); ill.name = 'Placeholder'; add(c, ill); }
+    else { add(c, icon('image', 'outline', 32, 'icon-muted')); add(c, await text('Image unavailable', 'caption', 'text-muted', 'Fallback')); }
+    comps.push(c);
+  }
+  return combine(page, comps, 'Image', 2, 'Fixed aspect ratios with rounded corners. Swap the fill for your photo (Fill → Image). Fallback shows when an image fails; always write alt text.');
+}
+async function buildCarousel(page: Host, sets: Sets) {
+  const c = comp('Carousel', { dir: 'VERTICAL', gap: 'space-12', fill: null, w: 560 }); c.counterAxisAlignItems = 'CENTER';
+  const track = hrow('Slides', 'space-12'); track.clipsContent = true;
+  for (let i = 0; i < 3; i++) { const sl = frame(`Slide ${i + 1}`, { dir: 'VERTICAL', fill: i === 0 ? 'gray-300' : 'surface-sunken', radius: 'radius-md', w: i === 0 ? 400 : 120, h: 240, align: 'CENTER', cross: 'CENTER' }); add(sl, icon('image', 'outline', 32, 'icon-muted')); add(track, sl); }
+  add(c, track);
+  const nav = hrow('Controls', 'space-12', { cross: 'CENTER' });
+  put2(nav, iconBtn(sets, 'chevron-back', 'Secondary', 'sm'));
+  const dots = hrow('Dots', 'space-8', { cross: 'CENTER' }); for (let i = 0; i < 4; i++) { const d = figma.createEllipse(); d.name = `Dot ${i + 1}`; d.resize(8, 8); d.fills = [paint(i === 0 ? 'action' : 'border-strong')]; add(dots, d); }
+  add(nav, dots); put2(nav, iconBtn(sets, 'chevron-forward', 'Secondary', 'sm'));
+  add(c, nav);
+  c.description = 'Snap-scrolling slides with buttons and dots. Never autoplays; every slide is reachable by keyboard.';
+  page.appendChild(c); return c;
+}
+async function buildTooltip(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const p of ['Top', 'Bottom', 'Left', 'Right']) {
+    const c = comp(`Placement=${p}`, { dir: p === 'Top' || p === 'Bottom' ? 'VERTICAL' : 'HORIZONTAL', gap: 'space-0', fill: null, cross: 'CENTER' });
+    const bub = frame('Bubble', { pad: ['space-8', 'space-12'], fill: 'surface-inverse', radius: 'radius-sm' }); add(bub, await text('Copy link', 'label-sm', 'text-inverse', 'Label'));
+    const ar = figma.createPolygon(); ar.name = 'Arrow'; ar.pointCount = 3; ar.resize(12, 6); ar.fills = [paint('surface-inverse')];
+    ar.rotation = p === 'Top' ? 180 : p === 'Bottom' ? 0 : p === 'Left' ? 90 : -90;
+    if (p === 'Top' || p === 'Left') { add(c, bub); add(c, ar); } else { add(c, ar); add(c, bub); }
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Tooltip', 4, 'Short label on hover and focus; Esc hides it. Never put essential or interactive content in a tooltip.');
+  linkText(set, 'Label', 'Copy link', 'Label');
+  return set;
+}
+async function buildSpinner(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const [sz, px] of [['sm', 16], ['md', 24], ['lg', 40]] as [string, number][]) for (const tone of ['Default', 'Inverse']) {
+    const c = comp(`Size=${sz}, Tone=${tone}`, { dir: 'NONE', fill: tone === 'Inverse' ? 'surface-inverse' : null, w: px + 16, h: px + 16, radius: 'radius-sm' });
+    const tr = figma.createEllipse(); tr.name = 'Track'; tr.resize(px, px); tr.arcData = { startingAngle: 0, endingAngle: 2 * Math.PI, innerRadius: 0.8 }; tr.fills = [paint(tone === 'Inverse' ? 'gray-700' : 'border')]; c.appendChild(tr); tr.x = 8; tr.y = 8;
+    const arc = figma.createEllipse(); arc.name = 'Arc'; arc.resize(px, px); arc.arcData = { startingAngle: -Math.PI / 2, endingAngle: Math.PI / 2, innerRadius: 0.8 }; arc.fills = [paint(tone === 'Inverse' ? 'text-inverse' : 'action')]; c.appendChild(arc); arc.x = 8; arc.y = 8;
+    comps.push(c);
+  }
+  return combine(page, comps, 'Spinner', 2, '0.8s rotation in code; pulses under reduced motion. Always pair with a label for screen readers.');
+}
+async function buildProgress(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const [tone, val, fill] of [['Default', 64, 'action'], ['Success', 100, 'success-solid'], ['Danger', 40, 'danger-solid']] as [string, number, string][]) for (const size of ['sm', 'md']) {
+    const c = comp(`Tone=${tone}, Size=${size}`, { dir: 'VERTICAL', gap: 'space-8', fill: null, w: 320 }); c.counterAxisAlignItems = 'MIN';
+    const top = hrow('Header', 'space-8', { w: 320 }); top.primaryAxisAlignItems = 'SPACE_BETWEEN';
+    add(top, await text(tone === 'Danger' ? 'Upload failed' : tone === 'Success' ? 'Upload complete' : 'Uploading', 'label', 'text', 'Label')); add(top, await text(`${val}%`, 'code-sm', 'text-muted', 'Value'));
+    add(c, top); fillW(top);
+    const h = size === 'sm' ? 4 : 8; const tr = frame('Track', { dir: 'NONE', fill: 'surface-sunken', radius: 'radius-full', w: 320, h }); tr.clipsContent = true;
+    const f = rect('Fill', 320 * val / 100, h, fill, h / 2); tr.appendChild(f); add(c, tr);
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'ProgressBar', 2, 'Determinate progress with a visible label and value. Colour changes are always paired with words.');
+  return set;
+}
+async function buildSkeleton(page: Host) {
+  const comps: ComponentNode[] = [];
+  let c = comp('Shape=Text', { dir: 'VERTICAL', gap: 'space-8', fill: null, w: 280 }); c.counterAxisAlignItems = 'MIN';
+  for (const w of [280, 240, 160]) add(c, rect('Line', w, 12, 'surface-sunken', 4)); comps.push(c);
+  c = comp('Shape=Rect', { fill: null }); add(c, rect('Block', 280, 160, 'surface-sunken', 8)); comps.push(c);
+  c = comp('Shape=Circle', { fill: null }); const e = figma.createEllipse(); e.name = 'Circle'; e.resize(48, 48); e.fills = [paint('surface-sunken')]; add(c, e); comps.push(c);
+  c = comp('Shape=Card', { dir: 'VERTICAL', gap: 'space-12', fill: 'surface', stroke: 'border', radius: 'radius-md', pad: 'space-16', w: 300 }); c.counterAxisAlignItems = 'MIN';
+  const hd = hrow('Head', 'space-12', { cross: 'CENTER' }); const av = figma.createEllipse(); av.resize(40, 40); av.fills = [paint('surface-sunken')]; add(hd, av); const tl = vcol('Lines', 'space-8'); add(tl, rect('Line', 140, 12, 'surface-sunken')); add(tl, rect('Line', 90, 10, 'surface-sunken')); add(hd, tl); add(c, hd);
+  add(c, rect('Media', 268, 120, 'surface-sunken', 6)); add(c, rect('Line', 220, 12, 'surface-sunken')); comps.push(c);
+  return combine(page, comps, 'Skeleton', 4, 'Shows the shape of loading content. A soft shimmer in code; static under reduced motion. Match the real layout.');
+}
+async function buildEmptyState(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const [kind, ill, title, body, cta] of [['Empty', 'empty-inbox', 'No messages yet', 'When someone writes to you, it will show up here.', 'Start a conversation'], ['Search', 'empty-search', 'No results for “tokns”', 'Check the spelling or try a broader term.', 'Clear search'], ['Error', 'error-offline', 'You’re offline', 'Check your connection and try again.', 'Retry'], ['Success', 'success-done', 'All done!', 'Every task on your list is complete.', 'Back to home']] as string[][]) {
+    const c = comp(`Kind=${kind}`, { dir: 'VERTICAL', gap: 'space-16', fill: 'surface', pad: 'space-32', w: 400, align: 'CENTER', cross: 'CENTER', radius: 'radius-md', stroke: 'border' });
+    const n = figma.createNodeFromSvg((DATA.illus as Record<string, string>)[ill]); n.rescale(160 / n.height); n.name = 'Illustration'; add(c, n);
+    const t = add(c, await text(title, 'heading-4', 'text', 'Title')); t.textAlignHorizontal = 'CENTER';
+    const d = add(c, await text(body, 'body', 'text-muted', 'Description', 320)); d.textAlignHorizontal = 'CENTER';
+    put2(c, inst(sets, 'Button', { Variant: kind === 'Error' ? 'Secondary' : 'Primary', Size: 'md', State: 'Default' }, { Label: cta }));
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'EmptyState', 4, 'Explains why a view is empty and what to do next. Uses the line illustrations; one clear action.');
+  return set;
+}
+async function buildBlockLoader(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const [sz, px] of [['sm', 24], ['md', 40], ['lg', 64]] as [string, number][]) for (const tone of ['Default', 'Inverse']) {
+    const c = comp(`Size=${sz}, Tone=${tone}`, { fill: tone === 'Inverse' ? 'surface-inverse' : null, pad: 'space-8', radius: 'radius-sm' });
+    const n = figma.createNodeFromSvg(DATA.logos[tone === 'Inverse' ? 'module-aa-nad-blocks-white' : 'module-aa-nad-blocks']); n.rescale(px / n.height); n.name = 'Blocks'; add(c, n);
+    comps.push(c);
+  }
+  return combine(page, comps, 'BlockLoader', 2, 'Brand loader: the Module Aa blocks light up in sequence (45ms apart, 1.8s loop) in code. Use for full-page loads.');
+}
+async function overlayPanel(name: string, w: number, h: number, sets: Sets, title: string) {
+  const c = comp(name, { dir: 'VERTICAL', fill: 'surface-raised', w, h, radius: 'radius-none' }); c.counterAxisAlignItems = 'MIN';
+  if (EFFECT['shadow-4']) await c.setEffectStyleIdAsync(EFFECT['shadow-4'].id);
+  const hd = hrow('Header', 'space-12', { pad: ['space-16', 'space-24'], cross: 'CENTER' }); const t = add(hd, await text(title, 'heading-4', 'text', 'Title')); t.layoutGrow = 1; put2(hd, iconBtn(sets, 'close')); add(c, hd); fillW(hd);
+  const body = vcol('Body', 'space-16', { pad: ['space-8', 'space-24'] }); add(c, body); fillW(body); body.layoutGrow = 1;
+  return { c, body };
+}
+async function buildDrawer(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const side of ['Right', 'Left']) {
+    const { c, body } = await overlayPanel(`Side=${side}`, 360, 560, sets, 'Filters');
+    for (const l of ['In stock', 'On sale', 'Free delivery']) put2(body, inst(sets, 'Checkbox', { Checked: l === 'In stock' ? 'True' : 'False', State: 'Default' }, { Label: l }));
+    put2(body, inst(sets, 'Divider', { Orientation: 'Horizontal', Label: 'False' }));
+    for (const l of ['Newest', 'Price: low to high']) put2(body, inst(sets, 'Radio', { Selected: l === 'Newest' ? 'True' : 'False', State: 'Default' }, { Label: l }));
+    const ft = hrow('Footer', 'space-8', { pad: ['space-16', 'space-24'], align: 'MAX', stroke: 'border' }); ft.strokeTopWeight = 1; ft.strokeBottomWeight = 0; ft.strokeLeftWeight = 0; ft.strokeRightWeight = 0;
+    put2(ft, inst(sets, 'Button', { Variant: 'Secondary', Size: 'md', State: 'Default' }, { Label: 'Reset' })); put2(ft, inst(sets, 'Button', { Variant: 'Primary', Size: 'md', State: 'Default' }, { Label: 'Show 24 results' }));
+    add(c, ft); fillW(ft);
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Drawer', 2, 'Side panel for filters and secondary tasks. Slides from its edge; focus is trapped and returns to the trigger.');
+  linkText(set, 'Title', 'Filters', 'Title');
+  return set;
+}
+async function buildBottomSheet(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const kind of ['Actions', 'Content']) {
+    const c = comp(`Kind=${kind}`, { dir: 'VERTICAL', gap: 'space-8', fill: 'surface-raised', w: 390, pad: ['space-8', 'space-0'] }); c.counterAxisAlignItems = 'CENTER';
+    c.topLeftRadius = 16; c.topRightRadius = 16; c.bottomLeftRadius = 0; c.bottomRightRadius = 0;
+    if (EFFECT['shadow-4']) await c.setEffectStyleIdAsync(EFFECT['shadow-4'].id);
+    add(c, rect('Handle', 36, 4, 'border-strong', 2));
+    const t = add(c, await text(kind === 'Actions' ? 'Share design' : 'Order summary', 'heading-5', 'text', 'Title'));
+    const body = vcol('Body', 'space-0', { pad: ['space-8', 'space-0'] }); add(c, body); fillW(body);
+    if (kind === 'Actions') for (const [ic, l] of [['link', 'Copy link'], ['mail', 'Email'], ['download', 'Download PNG']]) { const r = hrow(l, 'space-16', { pad: ['space-12', 'space-24'], cross: 'CENTER' }); add(r, icon(ic, 'outline', 24, 'icon')); add(r, await text(l, 'body', 'text')); add(body, r); fillW(r); }
+    else { for (const [a, b] of [['Subtotal', '₹2,400'], ['Delivery', 'Free'], ['Total', '₹2,400']]) { const r = hrow(a, 'space-8', { pad: ['space-8', 'space-24'] }); r.primaryAxisAlignItems = 'SPACE_BETWEEN'; add(r, await text(a, 'body', a === 'Total' ? 'text' : 'text-muted')); add(r, await text(b, a === 'Total' ? 'label' : 'body', 'text')); add(body, r); fillW(r); } }
+    const ft = vcol('Footer', 'space-8', { pad: ['space-8', 'space-24'] }); const btn = put2(ft, inst(sets, 'Button', { Variant: kind === 'Actions' ? 'Secondary' : 'Primary', Size: 'lg', State: 'Default' }, { Label: kind === 'Actions' ? 'Cancel' : 'Pay ₹2,400' })); add(c, ft); fillW(ft); if (btn) fillW(btn);
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'BottomSheet', 2, 'Mobile sheet with a drag handle. Rises from the bottom; swipe or Esc to dismiss. Keep actions within thumb reach.');
+  return set;
+}
+async function buildMenu(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Default', 'Hover', 'Danger', 'Disabled']) {
+    const c = comp(`State=${s}`, { gap: 'space-12', pad: ['space-8', 'space-12'], fill: s === 'Hover' ? 'surface-hover' : 'surface-raised', w: 240, cross: 'CENTER' });
+    const color = s === 'Danger' ? 'danger' : s === 'Disabled' ? 'text-disabled' : 'text';
+    add(c, icon(s === 'Danger' ? 'trash' : 'copy', 'outline', 20, color)).name = 'Icon';
+    add(c, await text(s === 'Danger' ? 'Delete' : 'Duplicate', 'body', color, 'Label')).layoutGrow = 1;
+    add(c, await text(s === 'Danger' ? 'Del' : 'Ctrl+D', 'code-sm', 'text-muted', 'Shortcut'));
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Menu item', 4, 'One action in a menu. Arrow keys move, type-ahead jumps, Esc closes. Destructive items go last, in red with a trash icon.');
+  linkBool(set, 'Show icon', true, 'Icon'); linkBool(set, 'Show shortcut', true, 'Shortcut'); linkSwap(set, 'Icon', 'copy/outline', 'Icon');
+  const m = comp('Menu', { dir: 'VERTICAL', fill: 'surface-raised', stroke: 'border', radius: 'radius-sm', pad: ['space-4', 'space-0'] }); m.counterAxisAlignItems = 'MIN';
+  if (EFFECT['shadow-3']) await m.setEffectStyleIdAsync(EFFECT['shadow-3'].id);
+  for (const [s, l, ic] of [['Default', 'Rename', 'create'], ['Hover', 'Duplicate', 'copy'], ['Default', 'Share', 'share-social'], ['Disabled', 'Move to…', 'folder']]) {
+    const i = variantOf(set, { State: s }).createInstance(); const ik = propKey(i, 'Icon'); if (ik && ICON[`${ic}/outline`]) i.setProperties({ [ik]: ICON[`${ic}/outline`].id }); await setInstText(i, 'Label', l); await setInstText(i, 'Shortcut', { Rename: 'F2', Duplicate: 'Ctrl+D', Share: 'Ctrl+S', 'Move to…': 'Ctrl+M' }[l] || ''); add(m, i);
+  }
+  const dv = rect('Divider', 240, 1, 'border', 0); add(m, dv);
+  add(m, variantOf(set, { State: 'Danger' }).createInstance());
+  m.description = 'Example actions menu built from Menu item instances.';
+  page.appendChild(m); m.x = 0; m.y = set.y + set.height + 64;
+  return set;
+}
+async function buildAccordion(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const s of ['Collapsed', 'Expanded']) for (const st of ['Default', 'Hover', 'Focus']) {
+    const c = comp(`State=${s}, Interaction=${st}`, { dir: 'VERTICAL', fill: st === 'Hover' ? 'surface-hover' : 'surface', stroke: 'border', w: 400 }); c.counterAxisAlignItems = 'MIN';
+    c.strokeTopWeight = 0; c.strokeLeftWeight = 0; c.strokeRightWeight = 0; c.strokeBottomWeight = 1;
+    const hd = hrow('Header', 'space-12', { pad: ['space-16', 'space-16'], cross: 'CENTER' }); add(hd, await text('How do I change the brand colour?', 'label-lg', 'text', 'Title')).layoutGrow = 1;
+    const ch = add(hd, icon('chevron-down', 'outline', 20, 'icon')); ch.name = 'Chevron'; if (s === 'Expanded') ch.rotation = 180;
+    add(c, hd); fillW(hd); if (st === 'Focus') focusRing(hd);
+    if (s === 'Expanded') { const b = vcol('Content', 'space-8', { pad: ['space-0', 'space-16'] }); b.paddingBottom = 16; add(b, await text('Swap the 11 brand/primary variables. Every component that uses an action colour updates automatically.', 'body', 'text-muted', 'Body', 368)); add(c, b); fillW(b); }
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'Accordion item', 3, 'Expandable section. The header is a button with aria-expanded; the chevron rotates 180°. Use single or multiple open.');
+  linkText(set, 'Title', 'How do I change the brand colour?', 'Title');
+  return set;
+}
+async function buildBreadcrumbs(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const sep of ['Chevron', 'Slash']) for (const coll of ['False', 'True']) {
+    const c = comp(`Separator=${sep}, Collapsed=${coll}`, { gap: 'space-8', fill: null, cross: 'CENTER' });
+    const items = coll === 'True' ? ['Home', '…', 'Components', 'Button'] : ['Home', 'Design system', 'Components', 'Button'];
+    for (let i = 0; i < items.length; i++) {
+      const last = i === items.length - 1;
+      if (i === 0) add(c, icon('home', 'outline', 16, 'link')).name = 'Home icon';
+      const t = add(c, await text(items[i], last ? 'label' : 'body-sm', last ? 'text' : 'link', last ? 'Current' : `Item ${i + 1}`)); if (!last && items[i] !== '…') t.textDecoration = 'UNDERLINE';
+      if (!last) { if (sep === 'Chevron') add(c, icon('chevron-forward', 'outline', 14, 'icon-muted')).name = 'Separator'; else add(c, await text('/', 'body-sm', 'text-muted', 'Separator')); }
+    }
+    comps.push(c);
+  }
+  return combine(page, comps, 'Breadcrumbs', 2, 'Shows where you are. The current page is plain text (aria-current); long trails collapse the middle.');
+}
+async function buildPagination(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  for (const kind of ['Numbered', 'Compact']) {
+    const c = comp(`Type=${kind}`, { gap: 'space-4', fill: null, cross: 'CENTER' });
+    put2(c, iconBtn(sets, 'chevron-back', 'Ghost', 'sm'));
+    if (kind === 'Numbered') for (const p of ['1', '2', '3', '…', '12']) { const b = frame(`Page ${p}`, { w: 32, h: 32, align: 'CENTER', cross: 'CENTER', fill: p === '2' ? 'action' : null, radius: 'radius-sm' }); add(b, await text(p, 'label', p === '2' ? 'on-action' : 'text')); add(c, b); }
+    else add(c, await text('Page 2 of 12', 'label', 'text', 'Status'));
+    put2(c, iconBtn(sets, 'chevron-forward', 'Ghost', 'sm'));
+    comps.push(c);
+  }
+  return combine(page, comps, 'Pagination', 2, 'Move between pages of results. The current page is filled and announced; use Compact on small screens.');
+}
+async function buildStepper(page: Host) {
+  const comps: ComponentNode[] = [];
+  const steps: [string, string][] = [['Cart', 'complete'], ['Address', 'current'], ['Payment', 'upcoming']];
+  for (const o of ['Horizontal', 'Vertical']) {
+    const c = comp(`Orientation=${o}`, { dir: o === 'Horizontal' ? 'HORIZONTAL' : 'VERTICAL', gap: 'space-12', fill: null, cross: o === 'Horizontal' ? 'CENTER' : 'MIN' }); if (o === 'Vertical') c.counterAxisAlignItems = 'MIN';
+    for (let i = 0; i < steps.length; i++) {
+      const [l, st] = steps[i];
+      const s = frame(l, { dir: o === 'Horizontal' ? 'VERTICAL' : 'HORIZONTAL', gap: 'space-8', fill: null, cross: 'CENTER' });
+      const dot = frame('Marker', { w: 32, h: 32, align: 'CENTER', cross: 'CENTER', radius: 'radius-full', fill: st === 'complete' ? 'action' : 'surface', stroke: st === 'upcoming' ? 'border-strong' : 'action', strokeW: 2 });
+      if (st === 'complete') add(dot, icon('checkmark', 'outline', 16, 'on-action')); else add(dot, await text(String(i + 1), 'label', st === 'current' ? 'text' : 'text-muted'));
+      add(s, dot); add(s, await text(l, st === 'current' ? 'label' : 'body-sm', st === 'upcoming' ? 'text-muted' : 'text', 'Label'));
+      add(c, s);
+      if (i < steps.length - 1) add(c, rect('Connector', o === 'Horizontal' ? 64 : 2, o === 'Horizontal' ? 2 : 24, st === 'complete' ? 'action' : 'border', 1));
+    }
+    comps.push(c);
+  }
+  return combine(page, comps, 'Stepper', 2, 'Progress through a multi-step flow: complete, current, upcoming or error. Steps are announced with their status.');
+}
+async function buildNavBar(page: Host, sets: Sets) {
+  const comps: ComponentNode[] = [];
+  let c = comp('Platform=Web', { gap: 'space-32', pad: ['space-12', 'space-24'], fill: 'surface', stroke: 'border', w: 960, cross: 'CENTER' }); c.strokeTopWeight = 0; c.strokeLeftWeight = 0; c.strokeRightWeight = 0; c.strokeBottomWeight = 1;
+  const lg = figma.createNodeFromSvg(DATA.logos['module-aa-nad-horizontal']); lg.rescale(32 / lg.height); lg.name = 'Logo'; add(c, lg);
+  const links = hrow('Links', 'space-24', { cross: 'CENTER' }); for (const [l, on] of [['Docs', true], ['Components', false], ['Tokens', false], ['Figma', false]] as [string, boolean][]) add(links, await text(l, 'label', on ? 'text' : 'text-muted', l)); add(c, links); links.layoutGrow = 1;
+  put2(c, iconBtn(sets, 'search')); put2(c, inst(sets, 'Button', { Variant: 'Primary', Size: 'sm', State: 'Default' }, { Label: 'Get started' }));
+  comps.push(c);
+  c = comp('Platform=Mobile', { gap: 'space-8', pad: ['space-8', 'space-8'], fill: 'surface', stroke: 'border', w: 390, cross: 'CENTER' }); c.strokeTopWeight = 0; c.strokeLeftWeight = 0; c.strokeRightWeight = 0; c.strokeBottomWeight = 1;
+  put2(c, iconBtn(sets, 'arrow-back')); const t = add(c, await text('Settings', 'heading-5', 'text', 'Title')); t.layoutGrow = 1; t.textAlignHorizontal = 'CENTER'; put2(c, iconBtn(sets, 'ellipsis-horizontal'));
+  comps.push(c);
+  return combine(page, comps, 'NavBar', 1, 'Web top bar and mobile app bar. Mobile: back on the left, title centred, one overflow action on the right; 48px targets.');
+}
+async function buildTabBar(page: Host) {
+  const comps: ComponentNode[] = [];
+  for (const on of ['True', 'False']) {
+    const c = comp(`Active=${on}`, { dir: 'VERTICAL', gap: 'space-4', fill: null, w: 78, pad: ['space-8', 'space-0'], cross: 'CENTER' });
+    const pill = frame('Indicator', { w: 56, h: 32, align: 'CENTER', cross: 'CENTER', radius: 'radius-full', fill: on === 'True' ? 'surface-sunken' : null });
+    add(pill, icon('home', on === 'True' ? 'filled' : 'outline', 24, on === 'True' ? 'text' : 'icon-muted')).name = 'Icon'; add(c, pill);
+    add(c, await text('Home', 'label-sm', on === 'True' ? 'text' : 'text-muted', 'Label'));
+    comps.push(c);
+  }
+  const set = combine(page, comps, 'TabBar item', 2, 'One destination in the mobile bottom bar: filled icon and a pill when active.');
+  linkText(set, 'Label', 'Home', 'Label');
+  const bar = comp('TabBar', { gap: 'space-0', pad: ['space-4', 'space-8'], fill: 'surface', stroke: 'border', w: 390, align: 'SPACE_BETWEEN' }); bar.strokeTopWeight = 1; bar.strokeBottomWeight = 0; bar.strokeLeftWeight = 0; bar.strokeRightWeight = 0;
+  for (const [l, ic, on] of [['Home', 'home', true], ['Search', 'search', false], ['Saved', 'bookmark', false], ['Profile', 'person', false]] as [string, string, boolean][]) {
+    const i = variantOf(set, { Active: on ? 'True' : 'False' }).createInstance(); const k = propKey(i, 'Label'); if (k) i.setProperties({ [k]: l });
+    const ico = i.findOne(n => n.type === 'INSTANCE' && n.name === 'Icon') as InstanceNode | null; const target = ICON[`${ic}/${on ? 'filled' : 'outline'}`]; if (ico && target) ico.swapComponent(target); add(bar, i);
+  }
+  bar.description = 'Mobile bottom navigation with 3–5 destinations.';
+  page.appendChild(bar); bar.x = 0; bar.y = set.y + set.height + 64;
+  return set;
+}
+
+const MORE: [string, string, (p: Host, s: Sets) => Promise<SceneNode>][] = [
+  ['Link', 'Inline, standalone and external links.', buildLink],
+  ['TextArea', 'Multi-line input with a character count.', buildTextArea],
+  ['Combobox', 'Searchable single select.', buildCombobox],
+  ['MultiSelect', 'Several values as tags in the field.', buildMultiSelect],
+  ['FileUpload', 'Dropzone and file rows with progress.', buildFileUpload],
+  ['Slider', 'A value in a range.', buildSlider],
+  ['SegmentedControl', '2–5 instant options.', buildSegmented],
+  ['Calendar', 'Month grid with today and selection.', buildCalendar],
+  ['DatePicker', 'Date field with popover calendar.', buildDatePicker],
+  ['Divider', 'Horizontal, labelled and vertical.', buildDivider],
+  ['List item', 'Rows with text, icon or avatar.', buildList],
+  ['Table cell', 'Data table cells and an example table.', buildTable],
+  ['Image', 'Aspect ratios and fallback.', buildImage],
+  ['Carousel', 'Slides, buttons and dots.', buildCarousel],
+  ['Tooltip', 'Four placements.', buildTooltip],
+  ['Spinner', 'Three sizes, default and inverse.', buildSpinner],
+  ['ProgressBar', 'Determinate progress in three tones.', buildProgress],
+  ['Skeleton', 'Loading placeholders.', buildSkeleton],
+  ['EmptyState', 'Empty, search, error and success.', buildEmptyState],
+  ['BlockLoader', 'The Module Aa brand loader.', buildBlockLoader],
+  ['Drawer', 'Side panel with filters.', buildDrawer],
+  ['BottomSheet', 'Mobile sheet with handle.', buildBottomSheet],
+  ['Menu item', 'Menu items and an example menu.', buildMenu],
+  ['Accordion item', 'Expandable sections.', buildAccordion],
+  ['Breadcrumbs', 'Where you are.', buildBreadcrumbs],
+  ['Pagination', 'Numbered and compact.', buildPagination],
+  ['Stepper', 'Horizontal and vertical.', buildStepper],
+  ['NavBar', 'Web and mobile bars.', buildNavBar],
+  ['TabBar item', 'Mobile bottom navigation.', buildTabBar],
+];
+async function rebuildMoreComponents() {
+  await figma.loadAllPagesAsync();
+  await figma.setCurrentPageAsync(figma.root.children[0]); // the current page can't be removed
+  const names = new Set(MORE.map(([n]) => n.replace(/ (item|cell)$/, '')));
+  let removed = 0;
+  for (const p of [...figma.root.children]) if (names.has(p.name) && figma.root.children.length > 1) { p.remove(); removed++; }
+  const compPage = figma.root.children.find(p => p.name === 'Components');
+  if (compPage) for (const n of [...compPage.children]) if (n.type === 'SECTION' && names.has(n.name)) { n.remove(); removed++; }
+  log(`Removed ${removed} generated pages`);
+  return addMoreComponents();
+}
+async function addMoreComponents() {
+  await setupFonts();
+  await loadExisting();
+  if (!VARS['bg']) { figma.closePlugin('No Aa NAD library in this file — run "Build library" first.'); return; }
+  const sets: Sets = collectSets();
+  // Files built on a 3-page plan keep components as sections on a "Components" page.
+  const compPage = figma.root.children.find(p => p.name === 'Components');
+  if (compPage) { LIMITED = true; GROUP_PAGES['Components'] = compPage; let y = 0; for (const n of compPage.children) y = Math.max(y, n.y + n.height + 200); CURSOR.set(compPage, y); }
+  let added = 0, skipped = 0;
+  // Calendar must exist before DatePicker uses it; MORE is already in dependency order.
+  for (const [name, desc, fn] of MORE) {
+    if (sets[name]) { skipped++; continue; }
+    try {
+      const page = await docPage(name.replace(/ (item|cell)$/, ''), name.replace(/ (item|cell)$/, ''), desc);
+      const node = await fn(page, sets);
+      if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') sets[name] = node as AnyComp;
+      finishHost(page); added++;
+    } catch (e: any) { warn(`${name}: ${e.message}`); }
+  }
+  lightCanvas();
+  figma.closePlugin(`Aa NAD: added ${added} components${skipped ? `, ${skipped} already present` : ''}.` + (issues.length ? ` ${issues.length} note(s) in the console.` : ''));
+}
+
 const CANVAS: Paint[] = [{ type: 'SOLID', color: { r: 0.957, g: 0.957, b: 0.957 } }];
 function lightCanvas() { for (const p of figma.root.children) p.backgrounds = CANVAS; }
 async function main() {
   if (figma.command === 'cover') return rebuildCover();
+  if (figma.command === 'more') return addMoreComponents();
+  if (figma.command === 'more-rebuild') return rebuildMoreComponents();
   // Re-running on a file that already holds the library only refreshes page backgrounds; it never builds a duplicate.
   if (figma.root.children.some(p => p.name === 'Foundations' || p.name === 'Cover & Foundations')) {
     lightCanvas();
